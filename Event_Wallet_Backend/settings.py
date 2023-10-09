@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'core',
+    'rest_framework.authtoken',
     'rest_framework',
     'corsheaders',
 ]
@@ -72,6 +73,15 @@ TEMPLATES = [
         },
     },
 ]
+
+DATABASES = {
+    'default': {
+        'ENGINE':'django.db.backends.postgresql_psycopg2',  # database driver for postgres on django
+        'NAME': 'event_wallet_db',  # database name
+        'USER': 'postgres',  # database user
+        'PASSWORD': '123456'  # database password cambiar a secretos
+    }
+}
 
 WSGI_APPLICATION = 'Event_Wallet_Backend.wsgi.application'
 
