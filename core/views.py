@@ -9,6 +9,7 @@ from rest_framework.permissions import AllowAny
 from core.serializers import UserSerializer
 
 
+
 #constantes
 ERROR_SERIALIZER = "The data sent is not correct"
 
@@ -23,7 +24,7 @@ class CreateTokenView(ObtainAuthToken):
         serializer = self.serializer_class(
             data=request.data, context={'request': request})
         if serializer.is_valid():
-            user = serializer.validated_data
+            user = serializer.validated_data["user"]
             token, created = Token.objects.get_or_create(user=user)
             return Response({
                 'error': False,

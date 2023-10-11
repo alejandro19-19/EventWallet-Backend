@@ -14,18 +14,17 @@ TIPO_EVENTO = [
 
 class UserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
-        """Creates and saves a new user"""
         user = self.model(email=self.normalize_email(email), **extra_fields)
         user.set_password(password)
         user.save(using=self._db)
         return user
-
+    
 class Usuario(AbstractBaseUser, PermissionsMixin):
 
     nombre = models.CharField(max_length=50)
     apellidos = models.CharField(max_length=50)
     apodo = models.CharField(max_length=50)
-    password = models.CharField(max_length=50)
+    password = models.CharField(max_length=500)
     email = models.EmailField(max_length=100, unique=True)
     foto = models.CharField(max_length=250)
     is_active = models.BooleanField(default=True)
