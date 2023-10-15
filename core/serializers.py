@@ -14,31 +14,20 @@ class AuthTokenSerializer(serializers.Serializer):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = get_user_model()
-        fields = ("id","nombre", "apellidos","apodo","password", "email", "foto" )
+        fields = ("id", "nombre", "apellidos", "apodo", "password", "email", "foto" )
     
     def create(self, validated_data):
         user = Usuario(**validated_data)
         user.set_password(validated_data["password"])
         user.save()
         return user
-        return user
+
 class UserModifySerializer(serializers.ModelSerializer):
     class Meta:
         model = Usuario
-        fields = ("id", "nombre", "apellidos", "apodo", "password", "foto" )
-
-    def update(self, instance, validated_data):
-        # Verificar si la contraseña está presente en los datos validados
-        if 'password' in validated_data:
-            nueva_contraseña = validated_data['password']
-            #obtiene el usuario actual
-            user = Usuario.objects.get(pk=instance.pk)
-            user.set_password(nueva_contraseña)
-            user.save()
-            return user
+        fields = ("id", "nombre", "apellidos", "apodo", "foto" )
 
 class ContactSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Contacto
-        fields = ("id","usuario1", "usuario2","is_active")
+        fields = ("id", "usuario1", "usuario2", "is_active")
