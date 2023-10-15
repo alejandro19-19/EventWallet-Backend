@@ -5,9 +5,9 @@ from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
 from rest_framework import generics, status
 from .models import Usuario, Contacto
-from rest_framework.permissions import AllowAny,IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.authentication import TokenAuthentication
-from core.serializers import UserSerializer, ContactSerializer
+from core.serializers import UserSerializer, UserModifySerializer, ContactSerializer
 from rest_framework.decorators import permission_classes, authentication_classes, api_view
 from django.views.decorators.http import require_http_methods
 
@@ -46,6 +46,15 @@ class CreateUserAdminView(generics.CreateAPIView):
     permission_classes = [AllowAny]
     serializer_class = UserSerializer
 
+class ManageUserView(generics.RetrieveUpdateAPIView):
+    """Manage the authenticated user"""  # cambiar el serializer para que permita cambiar
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    serializer_class = UserModifySerializer
+
+    def get_object(self):
+        """Retrieve authenticated user"""
+        return self.request.user
 
 # Funcion que permite agregar contactos
 
