@@ -48,7 +48,7 @@ class Actividad(models.Model):
     valor = models.FloatField()
 
 class Contacto(models.Model):
-
+    
     usuario1 = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name='usuario1')
     usuario2 = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name='usuario2')
     is_active = models.BooleanField(default=True)
