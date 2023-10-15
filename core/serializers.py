@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
-from .models import Usuario
+from .models import Usuario, Contacto
 #from core.models import
 
 class AuthTokenSerializer(serializers.Serializer):
@@ -21,3 +21,10 @@ class UserSerializer(serializers.ModelSerializer):
         user.set_password(validated_data["password"])
         user.save()
         return user
+    
+class ContactSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Contacto
+        fields = ("id","usuario1", "usuario2","is_active")
+

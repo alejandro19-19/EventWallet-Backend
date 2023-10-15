@@ -23,5 +23,7 @@ urlpatterns = [
     path('core/create',
         views.CreateUserAdminView.as_view(), name='create_user'),
     path('core/login',
-        views.CreateTokenView.as_view(), name='login_user')
+        views.CreateTokenView.as_view(), name='login_user'),
+    path('core/contacto',
+         views.create_contact, name = 'create_contact')
 ]
