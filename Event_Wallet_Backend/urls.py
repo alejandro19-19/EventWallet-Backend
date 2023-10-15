@@ -27,5 +27,7 @@ urlpatterns = [
     path('core/modify',
         views.ManageUserView.as_view(), name='modify_user'),
     path('core/contacto',
-         views.create_contact, name = 'create_contact'),
+        views.create_contact, name = 'create_contact'),
+    path('core/modify/password',
+        views.modify_password, name = 'modify_user_password'),
 ]

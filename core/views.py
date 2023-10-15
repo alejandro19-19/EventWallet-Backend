@@ -12,9 +12,10 @@ from rest_framework.decorators import permission_classes, authentication_classes
 from django.views.decorators.http import require_http_methods
 
 
-
 #constantes
 ERROR_SERIALIZER = "The data sent is not correct"
+ERROR_USUARIO_REACTIVADO = "Se ha reactivado el contacto"
+ERROR_USUARIO_CONTACTO_EXISTENTE = "El usuario ingresado ya es tu contacto"
 
 
 class CreateTokenView(ObtainAuthToken):
@@ -34,7 +35,7 @@ class CreateTokenView(ObtainAuthToken):
                 'token': token.key,
                 'email': user.email,
                 'name': user.nombre,
-                'apellido': user.apellidos,
+                'apellidos': user.apellidos,
                 'created': created,
             },status=status.HTTP_302_FOUND)
         else:
@@ -47,7 +48,7 @@ class CreateUserAdminView(generics.CreateAPIView):
     serializer_class = UserSerializer
 
 class ManageUserView(generics.RetrieveUpdateAPIView):
-    """Manage the authenticated user"""  # cambiar el serializer para que permita cambiar
+    """Manage the authenticated user"""
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
     serializer_class = UserModifySerializer
@@ -75,22 +76,22 @@ def create_contact(request):
      
             aux1 = Contacto.objects.get(usuario1_id = user1.id, usuario2_id = user2.id)
             if aux1.is_active == True:
-                return Response({"error": True, "informacion": "El usuario ingresado ya es tu contacto" }, status=status.HTTP_400_BAD_REQUEST)
+                return Response({"error": True, "informacion": ERROR_USUARIO_CONTACTO_EXISTENTE }, status=status.HTTP_400_BAD_REQUEST)
             else:
                 aux1.is_active = True
                 aux1.save()
-                return Response({"error": False, "informacion": "Se ha reactivado el contacto" },status=status.HTTP_200_OK)  
+                return Response({"error": False, "informacion": ERROR_USUARIO_REACTIVADO }, status=status.HTTP_200_OK)  
     except Contacto.DoesNotExist:
         pass
     try:
         if Contacto.objects.get(usuario1_id = user2.id, usuario2_id = user1.id):
             aux2 = Contacto.objects.get(usuario1_id = user2.id, usuario2_id = user1.id)
             if aux2.is_active == True:
-                return Response({"error": True, "informacion": "El usuario ingresado ya es tu contacto" }, status=status.HTTP_400_BAD_REQUEST)
+                return Response({"error": True, "informacion": ERROR_USUARIO_CONTACTO_EXISTENTE }, status=status.HTTP_400_BAD_REQUEST)
             else:
                 aux2.is_active = True
                 aux2.save()
-                return Response({"error": False, "informacion": "Se ha reactivado el contacto" },status=status.HTTP_200_OK)
+                return Response({"error": False, "informacion": ERROR_USUARIO_REACTIVADO }, status=status.HTTP_200_OK)
     except Contacto.DoesNotExist:
         pass
     contacto = Contacto()
@@ -99,3 +100,19 @@ def create_contact(request):
     contacto.save()
     serializer = ContactSerializer(contacto, many=False, context={'request': request})
     return Response(serializer.data,status=status.HTTP_201_CREATED)
+
+@api_view(['PUT'])
+@require_http_methods(['PUT'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def modify_password(request):
+    user = Token.objects.get(key=request.auth.key).user
+    old_password = request.data['old_password']
+    new_password = request.data['new_password']
+
+    if user.check_password(old_password):
+        user.set_password(new_password)
+        user.save()
+        return Response({"error": False, "informacion": "Se ha modificado la contraseña exitosamente." }, status=status.HTTP_200_OK)
+    else:
+        return Response({"error": True, "informacion": "La contraseña ingresada no coincide con la anterior." }, status=status.HTTP_400_BAD_REQUEST)
