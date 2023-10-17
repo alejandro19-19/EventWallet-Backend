@@ -116,3 +116,20 @@ def modify_password(request):
         return Response({"error": False, "informacion": "Se ha modificado la contraseña exitosamente." }, status=status.HTTP_200_OK)
     else:
         return Response({"error": True, "informacion": "La contraseña ingresada no coincide con la anterior." }, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['PUT'])
+@require_http_methods(['PUT'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def deactivate_account(request):
+    user = Token.objects.get(key=request.auth.key).user
+    password = request.data['password']
+
+    if user.check_password(password):
+        if user.is_active == True:
+            user.is_active = False
+            user.save()
+            return Response({"error": False, "informacion": "El usuario se ha deshabilitado" }, status=status.HTTP_200_OK)
+        return Response({"error": False, "informacion": "El usuario ya estaba deshabilitado" }, status=status.HTTP_400_BAD_REQUEST)
+    else:
+        return Response({"error": True, "informacion": "La contraseña ingresada no es correcta" }, status=status.HTTP_400_BAD_REQUEST)

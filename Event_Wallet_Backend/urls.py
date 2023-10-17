@@ -30,4 +30,6 @@ urlpatterns = [
         views.create_contact, name = 'create_contact'),
     path('core/modify/password',
         views.modify_password, name = 'modify_user_password'),
+    path('core/deactivate',
+        views.deactivate_account, name = 'deactivate_user_account'),
 ]
