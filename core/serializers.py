@@ -31,3 +31,15 @@ class ContactSerializer(serializers.ModelSerializer):
     class Meta:
         model = Contacto
         fields = ("id", "usuario1", "usuario2", "is_active")
+
+class UserContactSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = get_user_model()
+        fields = ("id", "nombre", "apellidos", "apodo", "email", "foto" )
+
+class GetContactSerializer(serializers.ModelSerializer):
+    usuario2 = UserContactSerializer(many=False, read_only = True)
+
+    class Meta:
+        model = Contacto
+        fields = ("id", "usuario1", "usuario2", "is_active")
