@@ -136,3 +136,24 @@ def get_contacts(request):
     user_contacts1 = Contacto.objects.filter(Q(usuario1_id = user.id))
     serializer1 = GetContactSerializer(user_contacts1, many=True, context={'request':request})
     return Response({"error": False, "contacts": serializer1.data} ,status=status.HTTP_200_OK)
+
+@api_view(['POST'])
+@require_http_methods(['POST'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def delete_contact(request):
+    user = Token.objects.get(key=request.auth.key).user
+    try:
+        user2 = Usuario.objects.get(email = request.data['email'])
+    except Usuario.DoesNotExist:
+      return Response({"error": True, "informacion": "El correo ingresado no corresponde a ningun usuario" }, status=status.HTTP_404_NOT_FOUND)
+    try:
+        contacto = Contacto.objects.get(usuario1_id = user.id, usuario2_id = user2.id)
+        if contacto.is_active == False:
+            return Response({"error": True, "informacion": "Este usuario ya no es tu contacto"}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            contacto.is_active=False
+            contacto.save()
+            return Response({"error": False, "informacion": "El contacto ha sido eliminado" }, status=status.HTTP_200_OK)       
+    except Contacto.DoesNotExist:
+        return Response({"error": True, "informacion": "Este usuario no es tu contacto"}, status=status.HTTP_400_BAD_REQUEST)

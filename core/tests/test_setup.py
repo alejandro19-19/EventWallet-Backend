@@ -10,7 +10,7 @@ class TestSetUp(APITestCase):
         self.modify_user_password_url = reverse('modify_user_password')
         self.contact_url = reverse('create_contact')
         self.contact_list_url = reverse('get_contacts')
-
+        self.contact_delete = reverse('delete_contact')
 
         self.user1_data ={
             "nombre": "prueba1",
