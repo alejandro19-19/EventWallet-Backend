@@ -34,4 +34,7 @@ urlpatterns = [
         views.deactivate_account, name = 'deactivate_user_account'),
     path('core/contacto/list',
     views.get_contacts, name = 'get_contacts'),
+    path('core/contacto/delete',
+    views.delete_contact, name = 'delete_contact'),
+       
 ]
