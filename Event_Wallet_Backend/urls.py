@@ -32,4 +32,6 @@ urlpatterns = [
         views.modify_password, name = 'modify_user_password'),
     path('core/deactivate',
         views.deactivate_account, name = 'deactivate_user_account'),
+    path('core/contacto/list',
+    views.get_contacts, name = 'get_contacts'),
 ]

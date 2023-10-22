@@ -7,9 +7,10 @@ from rest_framework import generics, status
 from .models import Usuario, Contacto
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.authentication import TokenAuthentication
-from core.serializers import UserSerializer, UserModifySerializer, ContactSerializer
+from core.serializers import UserSerializer, UserModifySerializer, ContactSerializer, GetContactSerializer
 from rest_framework.decorators import permission_classes, authentication_classes, api_view
 from django.views.decorators.http import require_http_methods
+from django.db.models import Q
 
 
 #constantes
@@ -83,17 +84,7 @@ def create_contact(request):
                 return Response({"error": False, "informacion": ERROR_USUARIO_REACTIVADO }, status=status.HTTP_200_OK)  
     except Contacto.DoesNotExist:
         pass
-    try:
-        if Contacto.objects.get(usuario1_id = user2.id, usuario2_id = user1.id):
-            aux2 = Contacto.objects.get(usuario1_id = user2.id, usuario2_id = user1.id)
-            if aux2.is_active == True:
-                return Response({"error": True, "informacion": ERROR_USUARIO_CONTACTO_EXISTENTE }, status=status.HTTP_400_BAD_REQUEST)
-            else:
-                aux2.is_active = True
-                aux2.save()
-                return Response({"error": False, "informacion": ERROR_USUARIO_REACTIVADO }, status=status.HTTP_200_OK)
-    except Contacto.DoesNotExist:
-        pass
+
     contacto = Contacto()
     contacto.usuario1_id = user1.id
     contacto.usuario2_id = user2.id
@@ -133,3 +124,15 @@ def deactivate_account(request):
         return Response({"error": False, "informacion": "El usuario ya estaba deshabilitado" }, status=status.HTTP_400_BAD_REQUEST)
     else:
         return Response({"error": True, "informacion": "La contraseña ingresada no es correcta" }, status=status.HTTP_400_BAD_REQUEST)
+    
+# Funcion que permite listar contactos
+
+@api_view(['GET'])
+@require_http_methods(['GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def get_contacts(request):
+    user = Token.objects.get(key=request.auth.key).user
+    user_contacts1 = Contacto.objects.filter(Q(usuario1_id = user.id))
+    serializer1 = GetContactSerializer(user_contacts1, many=True, context={'request':request})
+    return Response({"error": False, "contacts": serializer1.data} ,status=status.HTTP_200_OK)

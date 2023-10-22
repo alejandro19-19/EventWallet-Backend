@@ -37,3 +37,11 @@ class TestViews(TestSetUp):
         header = {'HTTP_AUTHORIZATION': 'Token {}'.format(Token)}
         res = self.client.put(self.modify_user_password_url, self.user1_modified_password_data, **header)
         self.assertEqual(res.status_code, 200)
+
+    def test_get_contacts(self):
+        self.client.post(self.create_url, self.user1_data, format='json')
+        log = self.client.post(self.login_url, self.login_user1, format='json')
+        Token = log.data['token']
+        header = {'HTTP_AUTHORIZATION': 'Token {}'.format(Token)}
+        res = self.client.get(self.contact_list_url,{},**header)
+        self.assertEqual(res.status_code, 200)
