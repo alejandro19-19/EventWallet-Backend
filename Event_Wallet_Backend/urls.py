@@ -33,8 +33,10 @@ urlpatterns = [
     path('core/deactivate',
         views.deactivate_account, name = 'deactivate_user_account'),
     path('core/contacto/list',
-    views.get_contacts, name = 'get_contacts'),
+        views.get_contacts, name = 'get_contacts'),
     path('core/contacto/delete',
-    views.delete_contact, name = 'delete_contact'),
+        views.delete_contact, name = 'delete_contact'),
+    path('core/create/event',
+        views.create_event, name ='create_event'),
        
 ]

@@ -4,10 +4,10 @@ from rest_framework.settings import api_settings
 from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
 from rest_framework import generics, status
-from .models import Usuario, Contacto
+from .models import Usuario, Contacto, Evento
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.authentication import TokenAuthentication
-from core.serializers import UserSerializer, UserModifySerializer, ContactSerializer, GetContactSerializer
+from core.serializers import UserSerializer, UserModifySerializer, ContactSerializer, GetContactSerializer, EventSerializer
 from rest_framework.decorators import permission_classes, authentication_classes, api_view
 from django.views.decorators.http import require_http_methods
 from django.db.models import Q
@@ -157,3 +157,23 @@ def delete_contact(request):
             return Response({"error": False, "informacion": "El contacto ha sido eliminado" }, status=status.HTTP_200_OK)       
     except Contacto.DoesNotExist:
         return Response({"error": True, "informacion": "Este usuario no es tu contacto"}, status=status.HTTP_400_BAD_REQUEST)
+    
+@api_view(['POST'])
+@require_http_methods(['POST'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])  
+def create_event(request):
+    user = Token.objects.get(key=request.auth.key).user
+    
+    evento = Evento()
+    evento.creador = user
+    evento.nombre = request.data['nombre']
+    evento.descripcion = request.data['descripcion']
+    evento.tipo = request.data['tipo']
+    evento.foto = request.data['foto']
+    serializer = EventSerializer(evento, data=request.data, many=False, context={'request': request})
+    if serializer.is_valid():
+        evento.save()
+        return Response({"error": False, "data": serializer.data}, status=status.HTTP_201_CREATED)
+    return Response({"error": True, "informacion": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+    
