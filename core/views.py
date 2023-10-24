@@ -7,7 +7,7 @@ from rest_framework import generics, status
 from .models import Usuario, Contacto, Evento, Invitacion
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.authentication import TokenAuthentication
-from core.serializers import UserSerializer, UserModifySerializer, ContactSerializer, GetContactSerializer, EventSerializer, InvitacionSerializer
+from core.serializers import UserSerializer, UserModifySerializer, ContactSerializer, GetContactSerializer, EventSerializer, InvitacionSerializer,InvitacionListSerializer
 from rest_framework.decorators import permission_classes, authentication_classes, api_view
 from django.views.decorators.http import require_http_methods
 from django.db.models import Q
@@ -134,8 +134,8 @@ def deactivate_account(request):
 def get_contacts(request):
     user = Token.objects.get(key=request.auth.key).user
     user_contacts1 = Contacto.objects.filter(Q(usuario1_id = user.id))
-    serializer1 = GetContactSerializer(user_contacts1, many=True, context={'request':request})
-    return Response({"error": False, "contacts": serializer1.data} ,status=status.HTTP_200_OK)
+    serializer = GetContactSerializer(user_contacts1, many=True, context={'request':request})
+    return Response({"error": False, "contacts": serializer.data} ,status=status.HTTP_200_OK)
 
 @api_view(['POST'])
 @require_http_methods(['POST'])
@@ -235,4 +235,13 @@ def create_invitation(request):
     invitacion.save()
     serializer = InvitacionSerializer(invitacion, many=False, context={'request': request})
     return Response({"error": False, "data": serializer.data}, status=status.HTTP_201_CREATED)
-   
+
+@api_view(['GET'])
+@require_http_methods(['GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def get_invitations(request):
+    user = Token.objects.get(key=request.auth.key).user
+    user_invitations = Invitacion.objects.filter(usuario_id = user.id, is_active = True)
+    serializer = InvitacionListSerializer(user_invitations, many=True, context={'request':request})
+    return Response({"error": False, "invitations": serializer.data} ,status=status.HTTP_200_OK)
