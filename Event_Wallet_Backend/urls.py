@@ -40,4 +40,6 @@ urlpatterns = [
         views.create_event, name ='create_event'),
     path('core/modify/event',
         views.modify_event, name ='modify_event'),
+    path('core/create/invitation',
+        views.create_invitation, name = 'create_invitation')
 ]

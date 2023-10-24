@@ -4,10 +4,10 @@ from rest_framework.settings import api_settings
 from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
 from rest_framework import generics, status
-from .models import Usuario, Contacto, Evento
+from .models import Usuario, Contacto, Evento, Invitacion
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.authentication import TokenAuthentication
-from core.serializers import UserSerializer, UserModifySerializer, ContactSerializer, GetContactSerializer, EventSerializer
+from core.serializers import UserSerializer, UserModifySerializer, ContactSerializer, GetContactSerializer, EventSerializer, InvitacionSerializer
 from rest_framework.decorators import permission_classes, authentication_classes, api_view
 from django.views.decorators.http import require_http_methods
 from django.db.models import Q
@@ -196,8 +196,43 @@ def modify_event(request):
         evento.descripcion = request.data['descripcion']
         evento.tipo = request.data['tipo']
         evento.foto = request.data['foto']
-        serializer = EventSerializer(evento,data=request.data, many=False, context={'request': request})
+        serializer = EventSerializer(evento, data=request.data, many=False, context={'request': request})
         if serializer.is_valid():
             evento.save()
             return Response({"error": False, "data": serializer.data}, status=status.HTTP_200_OK)
         return Response({"error": True, "informacion": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['POST'])
+@require_http_methods(['POST'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])  
+def create_invitation(request):
+    user = Token.objects.get(key=request.auth.key).user
+    try:
+        event = Evento.objects.get(id = request.data['evento_id'])
+    except Evento.DoesNotExist:
+        return Response({"error": True, "informacion": "El id ingresado no corresponde a ningun evento"}, status=status.HTTP_404_NOT_FOUND)
+    try:
+        user2 = Usuario.objects.get(email = request.data['email'])
+        if user.id == user2.id:
+            return Response({"error": True, "información":"No puede invitarse asi mismo al evento"}, status=status.HTTP_400_BAD_REQUEST)
+    except Usuario.DoesNotExist:
+      return Response({"error": True, "informacion": "El correo ingresado no corresponde a ningun usuario" }, status=status.HTTP_404_NOT_FOUND)
+    try:
+        inv =Invitacion.objects.get(evento_id = event.id, usuario_id = user2.id)
+        if inv.is_active == False:
+            inv.is_active = True
+            inv.save()
+            return Response({"error": False, "información":"Se ha reactivado la invitación"}, status=status.HTTP_200_OK)
+        else:
+            return Response({"error": True, "información":"Este usuario ya ha sido invitado a este evento"}, status=status.HTTP_400_BAD_REQUEST)
+    except Invitacion.DoesNotExist:
+        pass
+
+    invitacion = Invitacion()
+    invitacion.evento_id = event.id
+    invitacion.usuario_id = user2.id
+    invitacion.save()
+    serializer = InvitacionSerializer(invitacion, many=False, context={'request': request})
+    return Response({"error": False, "data": serializer.data}, status=status.HTTP_201_CREATED)
+   

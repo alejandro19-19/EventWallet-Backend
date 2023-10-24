@@ -13,6 +13,7 @@ class TestSetUp(APITestCase):
         self.contact_delete = reverse('delete_contact')
         self.create_event_url = reverse('create_event')
         self.modify_event_url = reverse('modify_event')
+        self.create_invitation_url = reverse('create_invitation')
 
         self.user1_data ={
             "nombre": "prueba1",
@@ -68,3 +69,7 @@ class TestSetUp(APITestCase):
             "tipo":"O",
             "foto":"samplepathfoto"
             }
+        self.invitation_data={
+            "evento_id": None,
+            "email": None
+        }

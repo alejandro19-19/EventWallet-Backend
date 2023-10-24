@@ -81,6 +81,7 @@ class Invitacion(models.Model):
     evento = models.ForeignKey(Evento, on_delete=models.CASCADE, related_name='invitacion_evento')
     usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name='usuario_invitacion')
     aceptado =  models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True)
 
 
     
