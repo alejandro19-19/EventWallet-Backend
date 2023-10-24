@@ -47,4 +47,4 @@ class GetContactSerializer(serializers.ModelSerializer):
 class EventSerializer(serializers.ModelSerializer):
     class Meta:
         model = Evento
-        fields = ("nombre", "descripcion", "tipo", "foto")
+        fields = ("id","nombre", "descripcion", "tipo", "foto")

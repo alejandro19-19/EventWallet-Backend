@@ -38,5 +38,6 @@ urlpatterns = [
         views.delete_contact, name = 'delete_contact'),
     path('core/create/event',
         views.create_event, name ='create_event'),
-       
+    path('core/modify/event',
+        views.modify_event, name ='modify_event'),
 ]
