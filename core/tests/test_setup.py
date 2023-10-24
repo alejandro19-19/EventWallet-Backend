@@ -11,6 +11,8 @@ class TestSetUp(APITestCase):
         self.contact_url = reverse('create_contact')
         self.contact_list_url = reverse('get_contacts')
         self.contact_delete = reverse('delete_contact')
+        self.create_event_url = reverse('create_event')
+        self.modify_event_url = reverse('modify_event')
 
         self.user1_data ={
             "nombre": "prueba1",
@@ -51,3 +53,18 @@ class TestSetUp(APITestCase):
         self.add_contact_user2 ={
             "email":"test2@test.com"
         }
+
+        self.event_data ={
+            "nombre": "test",
+            "descripcion":"test",
+            "tipo":"C",
+            "foto":"test"
+            }
+        
+        self.event_modified_data={
+            "evento_id": None,
+            "nombre": "samplename",
+            "descripcion":"sampledescription",
+            "tipo":"O",
+            "foto":"samplepathfoto"
+            }

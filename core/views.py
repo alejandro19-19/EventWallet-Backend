@@ -57,7 +57,7 @@ class ManageUserView(generics.RetrieveUpdateAPIView):
     def get_object(self):
         """Retrieve authenticated user"""
         return self.request.user
-
+    
 # Funcion que permite agregar contactos
 
 @api_view(['POST'])
@@ -176,4 +176,28 @@ def create_event(request):
         evento.save()
         return Response({"error": False, "data": serializer.data}, status=status.HTTP_201_CREATED)
     return Response({"error": True, "informacion": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['PUT'])
+@require_http_methods(['PUT'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])  
+def modify_event(request):
+    user = Token.objects.get(key=request.auth.key).user
+
+    try:
+        evento = Evento.objects.get(id = request.data['evento_id'])
+    except Evento.DoesNotExist:
+        return Response({"error": True, "informacion": "El id ingresado no corresponde a ningun evento"}, status=status.HTTP_404_NOT_FOUND)
     
+    if user.id != evento.creador_id:
+         return Response({"error": True, "informacion": "Este solo puede ser modificado por su creador"}, status=status.HTTP_400_BAD_REQUEST)
+    else:
+        evento.nombre = request.data['nombre']
+        evento.descripcion = request.data['descripcion']
+        evento.tipo = request.data['tipo']
+        evento.foto = request.data['foto']
+        serializer = EventSerializer(evento,data=request.data, many=False, context={'request': request})
+        if serializer.is_valid():
+            evento.save()
+            return Response({"error": False, "data": serializer.data}, status=status.HTTP_200_OK)
+        return Response({"error": True, "informacion": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)

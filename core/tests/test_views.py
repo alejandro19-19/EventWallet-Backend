@@ -55,3 +55,23 @@ class TestViews(TestSetUp):
         self.client.post(self.contact_url, self.add_contact_user2, **header)
         res = self.client.post(self.contact_delete, self.add_contact_user2, **header)
         self.assertEqual(res.status_code, 200)
+
+    def test_create_event(self):
+        self.client.post(self.create_url, self.user1_data, format='json')
+        log = self.client.post(self.login_url, self.login_user1, format='json')
+        Token = log.data['token']
+        header = {'HTTP_AUTHORIZATION': 'Token {}'.format(Token)}
+        res = self.client.post(self.create_event_url,self.event_data,**header)
+        self.assertEqual(res.status_code, 201)
+    
+    def test_modify_event(self):
+        self.client.post(self.create_url, self.user1_data, format='json')
+        log = self.client.post(self.login_url, self.login_user1, format='json')
+        Token = log.data['token']
+        header = {'HTTP_AUTHORIZATION': 'Token {}'.format(Token)}
+        respuesta = self.client.post(self.create_event_url,self.event_data,**header)
+        id = respuesta.data["data"]["id"]
+        data = self.event_modified_data
+        data["evento_id"] = id
+        res = self.client.put(self.modify_event_url,data,**header)
+        self.assertEqual(res.status_code, 200)
