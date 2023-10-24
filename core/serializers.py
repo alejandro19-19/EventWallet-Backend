@@ -53,3 +53,9 @@ class InvitacionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Invitacion
         fields = ("id","evento","usuario","aceptado")
+
+class InvitacionListSerializer(serializers.ModelSerializer):
+    evento = EventSerializer(many=False, read_only = True)
+    class Meta:
+        model = Invitacion
+        fields = ("id","evento","usuario","aceptado")
