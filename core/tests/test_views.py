@@ -75,3 +75,18 @@ class TestViews(TestSetUp):
         data["evento_id"] = id
         res = self.client.put(self.modify_event_url,data,**header)
         self.assertEqual(res.status_code, 200)
+
+    def test_create_invitation(self):
+        self.client.post(self.create_url, self.user1_data, format='json') 
+        log = self.client.post(self.login_url, self.login_user1, format='json')
+        Token = log.data['token']
+        header = {'HTTP_AUTHORIZATION': 'Token {}'.format(Token)}
+        res1 = self.client.post(self.create_url, self.user2_data, format='json')
+        mail = res1.data["email"]
+        res2 = self.client.post(self.create_event_url,self.event_data,**header)
+        id = res2.data["data"]["id"]
+        data = self.invitation_data
+        data["evento_id"] = id
+        data["email"] = mail
+        res = self.client.post(self.create_invitation_url,data,**header)
+        self.assertEqual(res.status_code, 201)
