@@ -44,4 +44,6 @@ urlpatterns = [
         views.create_invitation, name = 'create_invitation'),
     path('core/invitation/list',
         views.get_invitations, name ='get_invitations'),
+    path('core/invitation/respond',
+        views.respond_to_invitation, name='respond_to_invitation')
 ]
