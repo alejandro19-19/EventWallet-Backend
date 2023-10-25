@@ -4,10 +4,10 @@ from rest_framework.settings import api_settings
 from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
 from rest_framework import generics, status
-from .models import Usuario, Contacto, Evento, Invitacion
+from .models import Usuario, Contacto, Evento, Invitacion, UsuarioParticipaEvento
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.authentication import TokenAuthentication
-from core.serializers import UserSerializer, UserModifySerializer, ContactSerializer, GetContactSerializer, EventSerializer, InvitacionSerializer,InvitacionListSerializer
+from core.serializers import UserSerializer, UserModifySerializer, ContactSerializer, GetContactSerializer, EventSerializer, InvitacionSerializer, InvitacionListSerializer, EventRegistrationSerializer
 from rest_framework.decorators import permission_classes, authentication_classes, api_view
 from django.views.decorators.http import require_http_methods
 from django.db.models import Q
@@ -219,6 +219,12 @@ def create_invitation(request):
     except Usuario.DoesNotExist:
       return Response({"error": True, "informacion": "El correo ingresado no corresponde a ningun usuario" }, status=status.HTTP_404_NOT_FOUND)
     try:
+        registro = UsuarioParticipaEvento.objects.get(evento_id = event.id, participante_id = user2.id)
+        if registro.is_active == True:
+            return Response({"error": True, "información":"El usuario ingresado ya es parte del evento"}, status=status.HTTP_400_BAD_REQUEST)
+    except UsuarioParticipaEvento.DoesNotExist:
+        pass
+    try:
         inv =Invitacion.objects.get(evento_id = event.id, usuario_id = user2.id)
         if inv.is_active == False:
             inv.is_active = True
@@ -245,3 +251,43 @@ def get_invitations(request):
     user_invitations = Invitacion.objects.filter(usuario_id = user.id, is_active = True)
     serializer = InvitacionListSerializer(user_invitations, many=True, context={'request':request})
     return Response({"error": False, "invitations": serializer.data} ,status=status.HTTP_200_OK)
+
+@api_view(['POST'])
+@require_http_methods(['POST'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def respond_to_invitation(request):
+    user = Token.objects.get(key=request.auth.key).user
+    try:
+        invitacion = Invitacion.objects.get(id= request.data["invitacion_id"])
+        if invitacion.is_active == False:
+            return Response({"error": True, "informacion": "Esta invitación ya fue respondida" }, status=status.HTTP_400_BAD_REQUEST)
+    except Invitacion.DoesNotExist:
+        return Response({"error": True, "informacion": "No se encontro ninguna invitación con ese id" }, status=status.HTTP_404_NOT_FOUND)
+    
+    if request.data["respuesta"]==True:
+        invitacion.aceptado = True
+        invitacion.is_active = False
+        invitacion.save()
+
+        try:
+            registro = UsuarioParticipaEvento.objects.get(evento_id = invitacion.evento.id, participante_id = invitacion.usuario.id)
+            if registro.is_active == False:
+                registro.is_active = True
+                registro.save()
+                return Response({"error": False, "informacion":"El usuario ha sido agregado al evento"}, status=status.HTTP_200_OK)
+        except UsuarioParticipaEvento.DoesNotExist:
+            pass
+
+        registro = UsuarioParticipaEvento()
+        registro.evento = invitacion.evento
+        registro.participante = invitacion.usuario
+        registro.save()
+        serializer = EventRegistrationSerializer(registro, many=False, context={'request':request})
+        return Response({"error": False,"informacion":"Se ha aceptado la invitación y el usuario ha sido añadido al evento","data": serializer.data}, status=status.HTTP_200_OK)
+    
+    elif request.data["respuesta"]==False:
+        invitacion.aceptado = False
+        invitacion.is_active = False
+        invitacion.save()
+        return Response({"error": False,"informacion":"Se ha respondido la invitación"}, status=status.HTTP_200_OK)

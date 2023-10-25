@@ -15,6 +15,7 @@ class TestSetUp(APITestCase):
         self.modify_event_url = reverse('modify_event')
         self.create_invitation_url = reverse('create_invitation')
         self.invitation_list_url = reverse('get_invitations')
+        self.r_to_invitation_url = reverse('respond_to_invitation')
 
         self.user1_data ={
             "nombre": "prueba1",
@@ -36,6 +37,11 @@ class TestSetUp(APITestCase):
 
         self.login_user1 = {
             "username":"test@test.com",
+            "password":"1234"
+        }
+
+        self.login_user2 = {
+            "username":"test2@test.com",
             "password":"1234"
         }
 
@@ -70,7 +76,13 @@ class TestSetUp(APITestCase):
             "tipo":"O",
             "foto":"samplepathfoto"
             }
+        
         self.invitation_data={
             "evento_id": None,
             "email": None
+        }
+
+        self.respond_invitation_data = {
+            "invitacion_id":None,
+            "respuesta": False
         }
