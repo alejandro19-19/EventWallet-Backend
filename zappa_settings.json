@@ -1,0 +1,10 @@
+{
+    "dev": {
+        "aws_region": "us-east-1",
+        "django_settings": "Event_Wallet_Backend.settings",
+        "profile_name": "default",
+        "project_name": "eventwallet-bac",
+        "runtime": "python3.9",
+        "s3_bucket": "zappa-zzfz9wcth"
+    }
+}
