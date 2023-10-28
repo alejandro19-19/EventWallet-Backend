@@ -65,3 +65,9 @@ class EventRegistrationSerializer(serializers.ModelSerializer):
     class Meta:
         model = UsuarioParticipaEvento
         fields = ("evento","participante")
+
+class GetEventSerializer(serializers.ModelSerializer):
+    evento = EventSerializer(many=False, read_only = True)
+    class Meta:
+        model = UsuarioParticipaEvento
+        fields = ("evento",)

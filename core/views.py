@@ -7,7 +7,7 @@ from rest_framework import generics, status
 from .models import Usuario, Contacto, Evento, Invitacion, UsuarioParticipaEvento
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.authentication import TokenAuthentication
-from core.serializers import UserSerializer, UserModifySerializer, ContactSerializer, GetContactSerializer, EventSerializer, InvitacionSerializer, InvitacionListSerializer, EventRegistrationSerializer
+from core.serializers import UserSerializer, UserModifySerializer, ContactSerializer, GetContactSerializer, EventSerializer, InvitacionSerializer, InvitacionListSerializer, EventRegistrationSerializer, GetEventSerializer
 from rest_framework.decorators import permission_classes, authentication_classes, api_view
 from django.views.decorators.http import require_http_methods
 
@@ -290,3 +290,19 @@ def respond_to_invitation(request):
         invitacion.is_active = False
         invitacion.save()
         return Response({"error": False,"informacion":"Se ha respondido la invitación"}, status=status.HTTP_200_OK)
+    
+@api_view(['GET'])
+@require_http_methods(['GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def get_events(request):
+    user = Token.objects.get(key=request.auth.key).user
+    usuario_participa_evento = UsuarioParticipaEvento.objects.filter(participante= user.id)
+    if usuario_participa_evento.exists():
+        serializer1 = GetEventSerializer(
+            usuario_participa_evento, many=True, context={'request': request})
+    eventos_creador = Evento.objects.filter(creador = user.id)
+    if eventos_creador.exists():
+        serializer2 = EventSerializer(
+        eventos_creador, many=True, context={'request': request})
+    return Response({"error": False,"eventos_participante":serializer1.data,"eventos_creador":serializer2.data}, status=status.HTTP_200_OK)
