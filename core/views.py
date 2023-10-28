@@ -42,6 +42,7 @@ class CreateTokenView(ObtainAuthToken):
             return Response({"error": True, "informacion": ERROR_SERIALIZER }, status=status.HTTP_400_BAD_REQUEST)
 
 #Clase para crear los usuarios
+
 class CreateUserAdminView(generics.CreateAPIView):
     queryset = Usuario.objects.all()
     permission_classes = [AllowAny]
@@ -91,6 +92,8 @@ def create_contact(request):
     serializer = ContactSerializer(contacto, many=False, context={'request': request})
     return Response(serializer.data,status=status.HTTP_201_CREATED)
 
+# metodo que permite modificar la contraseña
+
 @api_view(['PUT'])
 @require_http_methods(['PUT'])
 @authentication_classes([TokenAuthentication])
@@ -106,6 +109,8 @@ def modify_password(request):
         return Response({"error": False, "informacion": "Se ha modificado la contraseña exitosamente." }, status=status.HTTP_200_OK)
     else:
         return Response({"error": True, "informacion": "La contraseña ingresada no coincide con la anterior." }, status=status.HTTP_400_BAD_REQUEST)
+
+# metodo que permite eliminar (desactivar) la cuenta
 
 @api_view(['PUT'])
 @require_http_methods(['PUT'])
@@ -136,6 +141,8 @@ def get_contacts(request):
     serializer = GetContactSerializer(user_contacts1, many=True, context={'request':request})
     return Response({"error": False, "contacts": serializer.data} ,status=status.HTTP_200_OK)
 
+# metodo que permite borrar un contacto (desactivarlo)
+
 @api_view(['POST'])
 @require_http_methods(['POST'])
 @authentication_classes([TokenAuthentication])
@@ -156,7 +163,9 @@ def delete_contact(request):
             return Response({"error": False, "informacion": "El contacto ha sido eliminado" }, status=status.HTTP_200_OK)       
     except Contacto.DoesNotExist:
         return Response({"error": True, "informacion": "Este usuario no es tu contacto"}, status=status.HTTP_400_BAD_REQUEST)
-    
+
+# metodo que permite crear un evento
+
 @api_view(['POST'])
 @require_http_methods(['POST'])
 @authentication_classes([TokenAuthentication])
@@ -175,6 +184,8 @@ def create_event(request):
         evento.save()
         return Response({"error": False, "data": serializer.data}, status=status.HTTP_201_CREATED)
     return Response({"error": True, "informacion": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+# metodo que permite modificar un evento
 
 @api_view(['PUT'])
 @require_http_methods(['PUT'])
@@ -200,6 +211,8 @@ def modify_event(request):
             evento.save()
             return Response({"error": False, "data": serializer.data}, status=status.HTTP_200_OK)
         return Response({"error": True, "informacion": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+# metodo que permite crear una invitacion a un evento
 
 @api_view(['POST'])
 @require_http_methods(['POST'])
@@ -241,6 +254,8 @@ def create_invitation(request):
     serializer = InvitacionSerializer(invitacion, many=False, context={'request': request})
     return Response({"error": False, "data": serializer.data}, status=status.HTTP_201_CREATED)
 
+# metodo que permite listar las invitaciones a eventos 
+
 @api_view(['GET'])
 @require_http_methods(['GET'])
 @authentication_classes([TokenAuthentication])
@@ -250,6 +265,8 @@ def get_invitations(request):
     user_invitations = Invitacion.objects.filter(usuario_id = user.id, is_active = True)
     serializer = InvitacionListSerializer(user_invitations, many=True, context={'request':request})
     return Response({"error": False, "invitations": serializer.data} ,status=status.HTTP_200_OK)
+
+# metodo que permite aceptar o rechazar una invitacion a un evento
 
 @api_view(['POST'])
 @require_http_methods(['POST'])
@@ -291,6 +308,8 @@ def respond_to_invitation(request):
         invitacion.save()
         return Response({"error": False,"informacion":"Se ha respondido la invitación"}, status=status.HTTP_200_OK)
     
+# metodo que permite listar todos los eventos a los que pertenece el usuario autenticado
+
 @api_view(['GET'])
 @require_http_methods(['GET'])
 @authentication_classes([TokenAuthentication])
