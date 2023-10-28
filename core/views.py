@@ -317,11 +317,9 @@ def respond_to_invitation(request):
 def get_events(request):
     user = Token.objects.get(key=request.auth.key).user
     usuario_participa_evento = UsuarioParticipaEvento.objects.filter(participante= user.id)
-    if usuario_participa_evento.exists():
-        serializer1 = GetEventSerializer(
-            usuario_participa_evento, many=True, context={'request': request})
+    serializer1 = GetEventSerializer(
+        usuario_participa_evento, many=True, context={'request': request})
     eventos_creador = Evento.objects.filter(creador = user.id)
-    if eventos_creador.exists():
-        serializer2 = EventSerializer(
-        eventos_creador, many=True, context={'request': request})
+    serializer2 = EventSerializer(
+    eventos_creador, many=True, context={'request': request})
     return Response({"error": False,"eventos_participante":serializer1.data,"eventos_creador":serializer2.data}, status=status.HTTP_200_OK)
