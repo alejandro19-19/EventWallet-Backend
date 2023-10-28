@@ -10,7 +10,6 @@ from rest_framework.authentication import TokenAuthentication
 from core.serializers import UserSerializer, UserModifySerializer, ContactSerializer, GetContactSerializer, EventSerializer, InvitacionSerializer, InvitacionListSerializer, EventRegistrationSerializer
 from rest_framework.decorators import permission_classes, authentication_classes, api_view
 from django.views.decorators.http import require_http_methods
-from django.db.models import Q
 
 
 #constantes
@@ -133,7 +132,7 @@ def deactivate_account(request):
 @permission_classes([IsAuthenticated])
 def get_contacts(request):
     user = Token.objects.get(key=request.auth.key).user
-    user_contacts1 = Contacto.objects.filter(Q(usuario1_id = user.id))
+    user_contacts1 = Contacto.objects.filter(usuario1_id = user.id).filter(usuario2__is_active = True)
     serializer = GetContactSerializer(user_contacts1, many=True, context={'request':request})
     return Response({"error": False, "contacts": serializer.data} ,status=status.HTTP_200_OK)
 
