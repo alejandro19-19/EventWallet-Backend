@@ -131,3 +131,11 @@ class TestViews(TestSetUp):
         header2 = {'HTTP_AUTHORIZATION': 'Token {}'.format(Token2)}
         res = self.client.post(self.r_to_invitation_url, inv_data, format='json', **header2)
         self.assertEqual(res.status_code, 200)
+
+    def test_get_events(self):
+        self.client.post(self.create_url, self.user1_data, format='json')
+        log = self.client.post(self.login_url, self.login_user1, format='json')
+        Token = log.data['token']
+        header = {'HTTP_AUTHORIZATION': 'Token {}'.format(Token)}
+        res = self.client.get(self.event_list_url,{},format='json',**header)
+        self.assertEqual(res.status_code, 200)

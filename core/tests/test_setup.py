@@ -16,6 +16,7 @@ class TestSetUp(APITestCase):
         self.create_invitation_url = reverse('create_invitation')
         self.invitation_list_url = reverse('get_invitations')
         self.r_to_invitation_url = reverse('respond_to_invitation')
+        self.event_list_url = reverse('get_events')
 
         self.user1_data ={
             "nombre": "prueba1",
