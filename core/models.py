@@ -26,7 +26,7 @@ class Usuario(AbstractBaseUser, PermissionsMixin):
     apodo = models.CharField(max_length=50)
     password = models.CharField(max_length=500)
     email = models.EmailField(max_length=100, unique=True)
-    foto = models.CharField(max_length=250)
+    foto = models.ImageField()
     is_active = models.BooleanField(default=True)
     objects = UserManager()
     USERNAME_FIELD = 'email'
@@ -37,7 +37,7 @@ class Evento(models.Model):
     nombre = models.CharField(max_length=50)
     descripcion = models.CharField(max_length=250)
     tipo = models.CharField(max_length=1,choices=TIPO_EVENTO)
-    foto = models.CharField(max_length=250)
+    foto = models.ImageField()
     terminado = models.BooleanField(default=False)
 
 class Actividad(models.Model):
