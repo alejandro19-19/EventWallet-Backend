@@ -178,7 +178,10 @@ def create_event(request):
     evento.nombre = request.data['nombre']
     evento.descripcion = request.data['descripcion']
     evento.tipo = request.data['tipo']
-    evento.foto = request.data['foto']
+    try:
+        evento.foto = request.data['foto']
+    except:
+        pass
     serializer = EventSerializer(evento, data=request.data, many=False, context={'request': request})
     if serializer.is_valid():
         evento.save()
@@ -205,7 +208,10 @@ def modify_event(request):
         evento.nombre = request.data['nombre']
         evento.descripcion = request.data['descripcion']
         evento.tipo = request.data['tipo']
-        evento.foto = request.data['foto']
+        try:
+            evento.foto = request.data['foto']
+        except:
+            pass
         serializer = EventSerializer(evento, data=request.data, many=False, context={'request': request})
         if serializer.is_valid():
             evento.save()

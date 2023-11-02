@@ -23,8 +23,7 @@ class TestSetUp(APITestCase):
             "apellidos": "prueba1",
             "apodo":"test1",
             "password": "1234",
-            "email": "test@test.com",
-            "foto": "test/path"         
+            "email": "test@test.com"        
         }
 
         self.user2_data ={
@@ -32,8 +31,7 @@ class TestSetUp(APITestCase):
             "apellidos": "prueba2",
             "apodo":"test2",
             "password": "1234",
-            "email": "test2@test.com",
-            "foto": "test/path"         
+            "email": "test2@test.com"        
         }
 
         self.login_user1 = {
@@ -49,8 +47,7 @@ class TestSetUp(APITestCase):
         self.user1_modified_data = {
             "nombre": "prueba1mod",
             "apellidos": "prueba1mod",
-            "apodo": "test1mod",
-            "foto": "test/path"
+            "apodo": "test1mod"
         }
 
         self.user1_modified_password_data = {
@@ -67,15 +64,13 @@ class TestSetUp(APITestCase):
             "nombre": "test",
             "descripcion":"test",
             "tipo":"C",
-            "foto":"test"
             }
         
         self.event_modified_data={
             "evento_id": None,
             "nombre": "samplename",
             "descripcion":"sampledescription",
-            "tipo":"O",
-            "foto":"samplepathfoto"
+            "tipo":"O"
             }
         
         self.invitation_data={
