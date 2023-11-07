@@ -4,10 +4,10 @@ from rest_framework.settings import api_settings
 from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
 from rest_framework import generics, status
-from .models import Usuario, Contacto, Evento, Invitacion, UsuarioParticipaEvento
+from .models import Usuario, Contacto, Evento, Invitacion, UsuarioParticipaEvento, Actividad
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.authentication import TokenAuthentication
-from core.serializers import UserSerializer, UserModifySerializer, ContactSerializer, GetContactSerializer, EventSerializer, InvitacionSerializer, InvitacionListSerializer, EventRegistrationSerializer, GetEventSerializer
+from core.serializers import UserSerializer, UserModifySerializer, ContactSerializer, GetContactSerializer, EventSerializer, InvitacionSerializer, InvitacionListSerializer, EventRegistrationSerializer, GetEventSerializer, ActivitySerializer
 from rest_framework.decorators import permission_classes, authentication_classes, api_view
 from django.views.decorators.http import require_http_methods
 
@@ -329,3 +329,26 @@ def get_events(request):
     serializer2 = EventSerializer(
     eventos_creador, many=True, context={'request': request})
     return Response({"error": False,"eventos_participante":serializer1.data,"eventos_creador":serializer2.data}, status=status.HTTP_200_OK)
+
+@api_view(['POST'])
+@require_http_methods(['POST'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])  
+def create_activity(request):
+    user = Token.objects.get(key=request.auth.key).user
+    try:
+        evento = Evento.objects.get(id = request.data['evento'])
+    except Evento.DoesNotExist:
+      return Response({"error": True, "informacion": "El evento ingresado no existe" }, status=status.HTTP_404_NOT_FOUND)
+    
+    actividad = Actividad()
+    actividad.evento = evento
+    actividad.creador = user
+    actividad.nombre = request.data['nombre']
+    actividad.descripcion = request.data['descripcion']
+    actividad.valor = request.data['valor']
+    serializer = ActivitySerializer(actividad, data=request.data, many=False, context={'request': request})
+    if serializer.is_valid():
+        actividad.save()
+        return Response({"error": False, "data": serializer.data}, status=status.HTTP_201_CREATED)
+    return Response({"error": True, "informacion": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
