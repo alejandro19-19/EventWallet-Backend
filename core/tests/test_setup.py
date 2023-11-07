@@ -18,6 +18,7 @@ class TestSetUp(APITestCase):
         self.r_to_invitation_url = reverse('respond_to_invitation')
         self.event_list_url = reverse('get_events')
         self.create_activity_url = reverse('create_activity')
+        self.create_invitation_activity_url = reverse('create_invitation_activity')
 
         self.user1_data ={
             "nombre": "prueba1",
@@ -65,14 +66,14 @@ class TestSetUp(APITestCase):
             "nombre": "test",
             "descripcion":"test",
             "tipo":"C",
-            }
+        }
         
         self.event_modified_data={
             "evento_id": None,
             "nombre": "samplename",
             "descripcion":"sampledescription",
             "tipo":"O"
-            }
+        }
         
         self.invitation_data={
             "evento_id": None,
@@ -89,4 +90,9 @@ class TestSetUp(APITestCase):
             "nombre": "samplename",
             "descripcion":"sampledescription",
             "valor": 12345
-            }
+        }
+
+        self.create_invitation_activity_data={
+            "actividad": None,
+            "participante" : None
+        }
