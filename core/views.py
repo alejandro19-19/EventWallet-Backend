@@ -362,8 +362,13 @@ def invitation_activity(request):
     try:
         actividad = Actividad.objects.get(id = request.data['actividad'])
         participante = Usuario.objects.get(email = request.data['participante'])
-        if participante.email == user.email:
-            return Response({"error": True, "informacion": "No puedes agregarte a ti mismo" }, status=status.HTTP_400_BAD_REQUEST)
+        evento = Evento.objects.get(id = actividad.evento.id)
+        if user.id != evento.creador.id:
+            participante_evento = UsuarioParticipaEvento.objects.filter(evento = evento.id, participante = user.id)
+            if not participante_evento.exists():
+                return Response({"error": True, "informacion": "No tienes permisos para agregar contactos a esta actividad"}, status=status.HTTP_403_FORBIDDEN)
+        if participante.email == actividad.creador.email:
+            return Response({"error": True, "informacion": "No puedes agregar al creador de la actividad" }, status=status.HTTP_400_BAD_REQUEST)
     except Actividad.DoesNotExist:
         return Response({"error": True, "informacion": "La actividad ingresada no existe" }, status=status.HTTP_404_NOT_FOUND)
     except Usuario.DoesNotExist:
