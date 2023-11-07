@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
-from .models import Usuario, Contacto, Evento, Invitacion, UsuarioParticipaEvento, Actividad
+from .models import Usuario, Contacto, Evento, Invitacion, UsuarioParticipaEvento, Actividad, UsuarioParticipaActividad
 #from core.models import
 
 class AuthTokenSerializer(serializers.Serializer):
@@ -77,3 +77,14 @@ class ActivitySerializer(serializers.ModelSerializer):
     class Meta:
         model= Actividad
         fields = ("id", "evento", "nombre", "descripcion", "valor")
+
+class UserInvitationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Usuario
+        fields = ("id", "nombre", "apellidos", "apodo")
+
+class InvitacionActivitySerializer(serializers.ModelSerializer):
+    participante = UserInvitationSerializer(many=False, read_only = True)
+    class Meta:
+        model = UsuarioParticipaActividad
+        fields = ("id", "participante", "actividad", "is_active", "valor")

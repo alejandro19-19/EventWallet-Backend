@@ -52,5 +52,7 @@ urlpatterns = [
         views.get_events, name='get_events'),
     path('core/create/activity',
         views.create_activity, name ='create_activity'),
+    path('core/invitation/activity',
+        views.invitation_activity, name ='create_invitation_activity'),
 ]
 urlpatterns += static(settings.MEDIA_URL,document_root=settings.MEDIA_ROOT)

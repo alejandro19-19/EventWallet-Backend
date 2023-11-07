@@ -73,7 +73,7 @@ class UsuarioParticipaActividad(models.Model):
 
     actividad = models.ForeignKey(Actividad, on_delete=models.CASCADE, related_name='actividad_participa')
     participante = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name='participante_actividad')
-    valor = models.FloatField()
+    valor = models.FloatField(null=True)
     is_active = models.BooleanField(default=True)
 
 class Invitacion(models.Model):

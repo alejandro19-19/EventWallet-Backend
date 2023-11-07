@@ -4,10 +4,10 @@ from rest_framework.settings import api_settings
 from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
 from rest_framework import generics, status
-from .models import Usuario, Contacto, Evento, Invitacion, UsuarioParticipaEvento, Actividad
+from .models import Usuario, Contacto, Evento, Invitacion, UsuarioParticipaEvento, Actividad, UsuarioParticipaActividad
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.authentication import TokenAuthentication
-from core.serializers import UserSerializer, UserModifySerializer, ContactSerializer, GetContactSerializer, EventSerializer, InvitacionSerializer, InvitacionListSerializer, EventRegistrationSerializer, GetEventSerializer, ActivitySerializer
+from core.serializers import UserSerializer, UserModifySerializer, ContactSerializer, GetContactSerializer, EventSerializer, InvitacionSerializer, InvitacionListSerializer, EventRegistrationSerializer, GetEventSerializer, ActivitySerializer, InvitacionActivitySerializer
 from rest_framework.decorators import permission_classes, authentication_classes, api_view
 from django.views.decorators.http import require_http_methods
 
@@ -351,4 +351,39 @@ def create_activity(request):
     if serializer.is_valid():
         actividad.save()
         return Response({"error": False, "data": serializer.data}, status=status.HTTP_201_CREATED)
+    return Response({"error": True, "informacion": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['POST'])
+@require_http_methods(['POST'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])  
+def invitation_activity(request):
+    user = Token.objects.get(key=request.auth.key).user
+    try:
+        actividad = Actividad.objects.get(id = request.data['actividad'])
+        participante = Usuario.objects.get(email = request.data['participante'])
+        if participante.email == user.email:
+            return Response({"error": True, "informacion": "No puedes agregarte a ti mismo" }, status=status.HTTP_400_BAD_REQUEST)
+    except Actividad.DoesNotExist:
+        return Response({"error": True, "informacion": "La actividad ingresada no existe" }, status=status.HTTP_404_NOT_FOUND)
+    except Usuario.DoesNotExist:
+        return Response({"error": True, "informacion": "El usuario ingresado no existe" }, status=status.HTTP_404_NOT_FOUND)
+    try:
+        invitacion = UsuarioParticipaActividad.objects.get(participante=participante.id, actividad=request.data['actividad'])
+        if invitacion.is_active == False:
+            invitacion.is_active = True
+            invitacion.save()
+            return Response({"error": False, "informacion": "Se ha reactivado la invitacion del usuario en la actividad"}, status=status.HTTP_200_OK)
+        else:
+            return Response({"error": True, "informacion": "Este usuario ya pertenece a la actividad" }, status=status.HTTP_400_BAD_REQUEST)
+    except UsuarioParticipaActividad.DoesNotExist:
+        pass
+
+    invitacion = UsuarioParticipaActividad()
+    invitacion.actividad = actividad
+    invitacion.participante = participante
+    serializer = InvitacionActivitySerializer(invitacion, data=request.data, many=False, context={'request': request})
+    if serializer.is_valid():
+        invitacion.save()
+        return Response({"error": False, "data": serializer.data}, status=status.HTTP_200_OK)
     return Response({"error": True, "informacion": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
