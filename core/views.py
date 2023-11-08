@@ -369,6 +369,10 @@ def invitation_activity(request):
                 return Response({"error": True, "informacion": "No tienes permisos para agregar contactos a esta actividad"}, status=status.HTTP_403_FORBIDDEN)
         if participante.email == actividad.creador.email:
             return Response({"error": True, "informacion": "No puedes agregar al creador de la actividad" }, status=status.HTTP_400_BAD_REQUEST)
+        if participante.id != evento.creador.id:
+            participa_evento = UsuarioParticipaEvento.objects.filter(evento = evento.id, participante = participante.id)
+            if not participa_evento.exists():
+                return Response({"error": True, "informacion": "No tienes permisos para agregar contactos a esta actividad"}, status=status.HTTP_403_FORBIDDEN)
     except Actividad.DoesNotExist:
         return Response({"error": True, "informacion": "La actividad ingresada no existe" }, status=status.HTTP_404_NOT_FOUND)
     except Usuario.DoesNotExist:
