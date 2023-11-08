@@ -19,7 +19,8 @@ class TestSetUp(APITestCase):
         self.event_list_url = reverse('get_events')
         self.create_activity_url = reverse('create_activity')
         self.create_invitation_activity_url = reverse('create_invitation_activity')
-
+        self.activity_delete = reverse('delete_activity')
+        
         self.user1_data ={
             "nombre": "prueba1",
             "apellidos": "prueba1",
@@ -95,4 +96,8 @@ class TestSetUp(APITestCase):
         self.create_invitation_activity_data={
             "actividad": None,
             "participante" : None
+        }
+
+        self.delete_activity_data = {
+            "actividad_id": None
         }
