@@ -170,3 +170,19 @@ class TestViews(TestSetUp):
         data2["participante"] = mail
         res4 = self.client.post(self.create_invitation_activity_url, data2, format='json',**header)
         self.assertEqual(res4.status_code, 403)
+
+    def test_delete_activity(self):
+        self.client.post(self.create_url, self.user1_data, format='json')
+        log = self.client.post(self.login_url, self.login_user1, format='json')
+        Token = log.data['token']
+        header = {'HTTP_AUTHORIZATION': 'Token {}'.format(Token)}
+        res2 = self.client.post(self.create_event_url,self.event_data,format='json',**header)
+        id = res2.data["data"]["id"]
+        data = self.create_activity_data
+        data["evento"] = id
+        res3 = self.client.post(self.create_activity_url, data,format='json',**header)
+        id2 = res3.data["data"]["id"]
+        data2 = self.delete_activity_data
+        data2["actividad_id"] = id2
+        res = self.client.post(self.activity_delete, data2 ,format='json',**header)
+        self.assertEqual(res.status_code, 200)

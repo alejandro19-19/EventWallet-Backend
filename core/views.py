@@ -396,3 +396,25 @@ def invitation_activity(request):
         invitacion.save()
         return Response({"error": False, "data": serializer.data}, status=status.HTTP_200_OK)
     return Response({"error": True, "informacion": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['POST'])
+@require_http_methods(['POST'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def delete_activity(request):
+    user = Token.objects.get(key=request.auth.key).user
+    try:
+        actividad = Actividad.objects.get(id = request.data['actividad_id'])
+    except Actividad.DoesNotExist:
+      return Response({"error": True, "informacion": "El id enviado no corresponde a ninguna actividad existente" }, status=status.HTTP_404_NOT_FOUND)
+    
+    if actividad.creador == user:
+        if actividad.is_active == False:
+            return Response({"error": True, "informacion": "La actividad fue eliminada con anterioridad"}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            actividad.is_active = False
+            actividad.save()
+            return Response({"error": False, "informacion": "La actividad ha sido eliminada"}, status=status.HTTP_200_OK)
+    else:
+        return Response({"error": True, "informacion": "Este usuario no tiene permiso para eliminar esta actividad"}, status=status.HTTP_403_FORBIDDEN)
+ 
