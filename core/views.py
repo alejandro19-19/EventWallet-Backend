@@ -417,4 +417,31 @@ def delete_activity(request):
             return Response({"error": False, "informacion": "La actividad ha sido eliminada"}, status=status.HTTP_200_OK)
     else:
         return Response({"error": True, "informacion": "Este usuario no tiene permiso para eliminar esta actividad"}, status=status.HTTP_403_FORBIDDEN)
- 
+
+@api_view(['PUT'])
+@require_http_methods(['PUT'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])  
+def modify_activity(request):
+    user = Token.objects.get(key=request.auth.key).user
+    try:
+        actividad = Actividad.objects.get(id = request.data['actividad_id'])
+    except Actividad.DoesNotExist:
+        return Response({"error": True, "informacion": "El id ingresado no corresponde a ninguna actividad"}, status=status.HTTP_404_NOT_FOUND)
+    
+    if user.id != actividad.creador_id:
+         print(user.id)
+         print(actividad.creador_id)
+         return Response({"error": True, "informacion": "Esta actividad solo puede ser modificada por su creador"}, status=status.HTTP_400_BAD_REQUEST)
+    else:
+        if type(request.data['nombre']) == type(''):
+            actividad.nombre = request.data['nombre']
+        else:
+            return Response({"error": True, "informacion": "tipo de dato (nombre) no valido"}, status=status.HTTP_400_BAD_REQUEST)
+        if type(request.data['descripcion']) == type(''):
+            actividad.descripcion = request.data['descripcion']
+        else:
+            return Response({"error": True, "informacion": "tipo de dato (descripcion) no valido"}, status=status.HTTP_400_BAD_REQUEST)
+        serializer = ActivitySerializer(actividad, many=False, context={'request': request})
+        actividad.save()
+        return Response({"error": False, "data": serializer.data}, status=status.HTTP_200_OK)
