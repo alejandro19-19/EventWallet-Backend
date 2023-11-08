@@ -169,4 +169,4 @@ class TestViews(TestSetUp):
         data2["actividad"] = id2
         data2["participante"] = mail
         res4 = self.client.post(self.create_invitation_activity_url, data2, format='json',**header)
-        self.assertEqual(res4.status_code, 200)
+        self.assertEqual(res4.status_code, 403)
