@@ -7,7 +7,7 @@ from rest_framework import generics, status
 from .models import Usuario, Contacto, Evento, Invitacion, UsuarioParticipaEvento, Actividad, UsuarioParticipaActividad
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.authentication import TokenAuthentication
-from core.serializers import UserSerializer, UserModifySerializer, ContactSerializer, GetContactSerializer, EventSerializer, InvitacionSerializer, InvitacionListSerializer, EventRegistrationSerializer, GetEventSerializer, ActivitySerializer, InvitacionActivitySerializer
+from core.serializers import UserSerializer, UserModifySerializer, ContactSerializer, GetContactSerializer, EventSerializer, InvitacionSerializer, InvitacionListSerializer, EventRegistrationSerializer, GetEventSerializer, ActivitySerializer, InvitacionActivitySerializer, GetActivitySerializer
 from rest_framework.decorators import permission_classes, authentication_classes, api_view
 from django.views.decorators.http import require_http_methods
 
@@ -330,6 +330,8 @@ def get_events(request):
     eventos_creador, many=True, context={'request': request})
     return Response({"error": False,"eventos_participante":serializer1.data,"eventos_creador":serializer2.data}, status=status.HTTP_200_OK)
 
+# metodo que permite crear actividades
+
 @api_view(['POST'])
 @require_http_methods(['POST'])
 @authentication_classes([TokenAuthentication])
@@ -352,6 +354,8 @@ def create_activity(request):
         actividad.save()
         return Response({"error": False, "data": serializer.data}, status=status.HTTP_201_CREATED)
     return Response({"error": True, "informacion": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+# metodo que permite invitar a un contacto a una actividades
 
 @api_view(['POST'])
 @require_http_methods(['POST'])
@@ -397,6 +401,8 @@ def invitation_activity(request):
         return Response({"error": False, "data": serializer.data}, status=status.HTTP_200_OK)
     return Response({"error": True, "informacion": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
+# metodo que permite eliminar una actividades
+
 @api_view(['POST'])
 @require_http_methods(['POST'])
 @authentication_classes([TokenAuthentication])
@@ -417,6 +423,8 @@ def delete_activity(request):
             return Response({"error": False, "informacion": "La actividad ha sido eliminada"}, status=status.HTTP_200_OK)
     else:
         return Response({"error": True, "informacion": "Este usuario no tiene permiso para eliminar esta actividad"}, status=status.HTTP_403_FORBIDDEN)
+
+# metodo que permite modificar una actividades
 
 @api_view(['PUT'])
 @require_http_methods(['PUT'])
@@ -445,3 +453,20 @@ def modify_activity(request):
         serializer = ActivitySerializer(actividad, many=False, context={'request': request})
         actividad.save()
         return Response({"error": False, "data": serializer.data}, status=status.HTTP_200_OK)
+    
+# Funcion que permite listar todas las actividades del evento ingresado
+
+@api_view(['GET'])
+@require_http_methods(['GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def get_activities(request, pk):
+
+    try:
+        evento = Evento.objects.get(id = pk)
+    except Evento.DoesNotExist:
+        return Response({"error": True, "informacion": "El id enviado no corresponde a ningun evento existente" }, status=status.HTTP_404_NOT_FOUND)
+        
+    activities = Actividad.objects.filter(evento = evento.id, is_active= True)
+    serializer = GetActivitySerializer(activities, many=True, context={'request':request})
+    return Response({"error": False, "data": serializer.data} ,status=status.HTTP_200_OK)

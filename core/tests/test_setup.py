@@ -21,6 +21,7 @@ class TestSetUp(APITestCase):
         self.create_invitation_activity_url = reverse('create_invitation_activity')
         self.activity_delete_url = reverse('delete_activity')
         self.modify_activity_url = reverse('modify_activity')
+        self.get_activities_url = reverse('get_activities', kwargs={'pk': 1})
         
         self.user1_data ={
             "nombre": "prueba1",
