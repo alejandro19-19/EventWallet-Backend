@@ -58,5 +58,7 @@ urlpatterns = [
          views.delete_activity, name = 'delete_activity'),
     path('core/modify/activity',
          views.modify_activity, name = 'modify_activity'),
+    path('core/activity/list/<int:pk>/',
+         views.get_activities, name = 'get_activities'),
 ]
 urlpatterns += static(settings.MEDIA_URL,document_root=settings.MEDIA_ROOT)
