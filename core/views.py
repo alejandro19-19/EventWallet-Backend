@@ -470,3 +470,40 @@ def get_activities(request, pk):
     activities = Actividad.objects.filter(evento = evento.id, is_active= True)
     serializer = GetActivitySerializer(activities, many=True, context={'request':request})
     return Response({"error": False, "data": serializer.data} ,status=status.HTTP_200_OK)
+
+@api_view(['GET'])
+@require_http_methods(['GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def get_event_balances(request, pk):
+
+    try:
+        evento = Evento.objects.get(id = pk)
+    except Evento.DoesNotExist:
+        return Response({"error": True, "informacion": "El id enviado no corresponde a ningun evento existente" }, status=status.HTTP_404_NOT_FOUND)
+    data = {}
+
+    activities = Actividad.objects.filter(evento = evento.id, is_active= True)
+
+    for actividad in activities:
+        id = actividad.id
+        participaciones = UsuarioParticipaActividad.objects.filter(actividad_id = id)
+        for participacion in participaciones:
+            if participacion.is_active:
+                participante = Usuario.objects.get(id = participacion.participante_id)
+                nombre = participante.nombre + " " + participante.apellidos
+                valor = participacion.valor
+                if nombre in data:
+                    data[nombre] = data[nombre] + [valor]
+                else:
+                    data[nombre] = [valor]
+    
+    for i in data:
+        valorTotal = 0
+        
+        for valor in data[i]:
+            valorTotal += valor
+        data[i] = valorTotal
+    dataFinal = {"evento_id":evento.id, "saldos":data}
+    
+    return Response({"error": False, "data": dataFinal} ,status=status.HTTP_200_OK)
