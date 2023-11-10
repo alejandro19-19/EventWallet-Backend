@@ -22,6 +22,7 @@ class TestSetUp(APITestCase):
         self.activity_delete_url = reverse('delete_activity')
         self.modify_activity_url = reverse('modify_activity')
         self.get_activities_url = reverse('get_activities', kwargs={'pk': 1})
+        self.get_event_balances_url = reverse('event_balances',args=[1])
         
         self.user1_data ={
             "nombre": "prueba1",
