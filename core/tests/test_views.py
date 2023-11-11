@@ -243,4 +243,39 @@ class TestViews(TestSetUp):
         data["evento"] = id
         data["contacto"] = res1.data["id"]
         res = self.client.post(self.delete_contact_event_url, data, format='json', **header)
-        self.assertEqual(res.status_code, 200)    
+        self.assertEqual(res.status_code, 200)  
+
+    def test_assign_value_activity(self):
+        self.client.post(self.create_url, self.user1_data, format='json') 
+        log = self.client.post(self.login_url, self.login_user1, format='json')
+        Token = log.data['token']
+        header = {'HTTP_AUTHORIZATION': 'Token {}'.format(Token)}
+        res1 = self.client.post(self.create_url, self.user2_data, format='json')
+        mail = res1.data["email"]
+        res2 = self.client.post(self.create_event_url,self.event_data,format='json',**header)
+        id = res2.data["data"]["id"]
+        data = self.invitation_data
+        data["evento_id"] = id
+        data["email"] = mail
+        res3 = self.client.post(self.create_invitation_url,data, format='json',**header)
+        inv_id = res3.data["data"]["id"]
+        inv_data = self.respond_invitation_data2
+        inv_data["invitacion_id"] = inv_id
+        log2 = self.client.post(self.login_url, self.login_user2, format='json')
+        Token2 = log2.data['token']
+        header2 = {'HTTP_AUTHORIZATION': 'Token {}'.format(Token2)}
+        res3 = self.client.post(self.r_to_invitation_url, inv_data, format='json', **header2)
+        id = res2.data["data"]["id"]
+        data = self.create_activity_data
+        data["evento"] = id
+        res4 = self.client.post(self.create_activity_url, data,format='json',**header)
+        id2 = res4.data["data"]["id"]
+        data2 = self.create_invitation_activity_data
+        data2["actividad"] = id2
+        data2["participante"] = mail
+        res4 = self.client.post(self.create_invitation_activity_url, data2, format='json',**header)
+        data3 = self.assign_value_activity_data
+        data3["actividad"] = id2
+        data3["participantes"][0]["id"] = res4.data["data"]["participante"]["id"]
+        res5 = self.client.put(self.assign_value_activity_url, data3, format='json',**header)
+        self.assertEqual(res5.status_code, 200)

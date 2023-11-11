@@ -509,7 +509,7 @@ def get_event_balances(request, pk):
     
     return Response({"error": False, "data": dataFinal} ,status=status.HTTP_200_OK)
 
-# metodo que permite eliminar una actividades
+# metodo que permite eliminar un participante de un evento
 
 @api_view(['POST'])
 @require_http_methods(['POST'])
@@ -521,10 +521,8 @@ def delete_contact_event(request):
         evento = Evento.objects.get(id = request.data['evento'])
         contacto = Usuario.objects.get(id = request.data['contacto'])
     except Evento.DoesNotExist:
-        print("aqui no hay evento")
         return Response({"error": True, "informacion": "El id enviado no corresponde a ningun evento existente" }, status=status.HTTP_404_NOT_FOUND)
     except Usuario.DoesNotExist:
-        print("aqui no hay usuario")
         return Response({"error": True, "informacion": ERROR_ELIMINAR_CONTACTO_EVENTO }, status=status.HTTP_404_NOT_FOUND)
     
     if evento.creador.id == user.id:
@@ -544,3 +542,28 @@ def delete_contact_event(request):
             return Response({"error": True, "informacion": "El contacto ya ha sido eliminado del evento"}, status=status.HTTP_400_BAD_REQUEST)
     else:
         return Response({"error": True, "informacion": "Este usuario no tiene permiso para eliminar este participante"}, status=status.HTTP_403_FORBIDDEN)
+    
+# metodo que permite asignar valores a los participantes de una actividad
+
+@api_view(['PUT'])
+@require_http_methods(['PUT'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])  
+def assign_value_activity(request):
+    user = Token.objects.get(key=request.auth.key).user
+    try:
+        actividad = Actividad.objects.get(id = request.data['actividad'])
+    except Actividad.DoesNotExist:
+        return Response({"error": True, "informacion": "El id ingresado no corresponde a ninguna actividad"}, status=status.HTTP_404_NOT_FOUND)
+    
+    if user.id != actividad.creador_id:
+        return Response({"error": True, "informacion": "Los valores de participacion solo pueden ser asignados por el creador de la actividad"}, status=status.HTTP_400_BAD_REQUEST)
+    participantes = request.data['participantes']
+    for participante in participantes:
+        try:   
+            participante_actividad = UsuarioParticipaActividad.objects.get(participante_id = participante["id"], actividad_id = actividad.id)
+        except UsuarioParticipaActividad.DoesNotExist:
+            return Response({"error": True, "informacion": "El usuario no pertenece a la actividad ingresada"}, status=status.HTTP_400_BAD_REQUEST)
+        participante_actividad.valor = participante["value"]
+        participante_actividad.save()
+    return Response({"error": False, "informacion": "Se han registrado los valores"}, status=status.HTTP_200_OK)       

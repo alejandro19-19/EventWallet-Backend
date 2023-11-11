@@ -64,5 +64,7 @@ urlpatterns = [
         views.get_event_balances, name = 'event_balances'),
     path('core/event/contact/delete',
         views.delete_contact_event, name = 'delete_contact_event'),
+    path('core/activity/assign/value',
+        views.assign_value_activity, name = 'assign_value_activity'),
 ]
 urlpatterns += static(settings.MEDIA_URL,document_root=settings.MEDIA_ROOT)
