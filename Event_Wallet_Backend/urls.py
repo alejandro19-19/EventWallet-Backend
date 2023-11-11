@@ -55,12 +55,14 @@ urlpatterns = [
     path('core/invitation/activity',
         views.invitation_activity, name ='create_invitation_activity'),
     path('core/activity/delete',
-         views.delete_activity, name = 'delete_activity'),
+        views.delete_activity, name = 'delete_activity'),
     path('core/modify/activity',
-         views.modify_activity, name = 'modify_activity'),
+        views.modify_activity, name = 'modify_activity'),
     path('core/activity/list/<int:pk>/',
-         views.get_activities, name = 'get_activities'),
+        views.get_activities, name = 'get_activities'),
     path('core/event/balances/<int:pk>/',
-         views.get_event_balances, name = 'event_balances'),
+        views.get_event_balances, name = 'event_balances'),
+    path('core/event/contact/delete',
+        views.delete_contact_event, name = 'delete_contact_event'),
 ]
 urlpatterns += static(settings.MEDIA_URL,document_root=settings.MEDIA_ROOT)

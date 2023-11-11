@@ -16,6 +16,7 @@ from django.views.decorators.http import require_http_methods
 ERROR_SERIALIZER = "The data sent is not correct"
 ERROR_USUARIO_REACTIVADO = "Se ha reactivado el contacto"
 ERROR_USUARIO_CONTACTO_EXISTENTE = "El usuario ingresado ya es tu contacto"
+ERROR_ELIMINAR_CONTACTO_EVENTO = "El contacto enviado no forma parte del evento"
 
 
 class CreateTokenView(ObtainAuthToken):
@@ -438,9 +439,7 @@ def modify_activity(request):
         return Response({"error": True, "informacion": "El id ingresado no corresponde a ninguna actividad"}, status=status.HTTP_404_NOT_FOUND)
     
     if user.id != actividad.creador_id:
-         print(user.id)
-         print(actividad.creador_id)
-         return Response({"error": True, "informacion": "Esta actividad solo puede ser modificada por su creador"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": True, "informacion": "Esta actividad solo puede ser modificada por su creador"}, status=status.HTTP_400_BAD_REQUEST)
     else:
         if type(request.data['nombre']) == type(''):
             actividad.nombre = request.data['nombre']
@@ -470,6 +469,8 @@ def get_activities(request, pk):
     activities = Actividad.objects.filter(evento = evento.id, is_active= True)
     serializer = GetActivitySerializer(activities, many=True, context={'request':request})
     return Response({"error": False, "data": serializer.data} ,status=status.HTTP_200_OK)
+
+# Funcion que permite obtener los balances de cada usuario
 
 @api_view(['GET'])
 @require_http_methods(['GET'])
@@ -507,3 +508,39 @@ def get_event_balances(request, pk):
     dataFinal = {"evento_id":evento.id, "saldos":data}
     
     return Response({"error": False, "data": dataFinal} ,status=status.HTTP_200_OK)
+
+# metodo que permite eliminar una actividades
+
+@api_view(['POST'])
+@require_http_methods(['POST'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def delete_contact_event(request):
+    user = Token.objects.get(key=request.auth.key).user
+    try:
+        evento = Evento.objects.get(id = request.data['evento'])
+        contacto = Usuario.objects.get(id = request.data['contacto'])
+    except Evento.DoesNotExist:
+        print("aqui no hay evento")
+        return Response({"error": True, "informacion": "El id enviado no corresponde a ningun evento existente" }, status=status.HTTP_404_NOT_FOUND)
+    except Usuario.DoesNotExist:
+        print("aqui no hay usuario")
+        return Response({"error": True, "informacion": ERROR_ELIMINAR_CONTACTO_EVENTO }, status=status.HTTP_404_NOT_FOUND)
+    
+    if evento.creador.id == user.id:
+        try:
+            participante_evento = UsuarioParticipaEvento.objects.get(evento = evento.id, participante = contacto.id)
+        except UsuarioParticipaEvento.DoesNotExist:
+            return Response({"error": True, "informacion": ERROR_ELIMINAR_CONTACTO_EVENTO }, status=status.HTTP_404_NOT_FOUND)    
+        if participante_evento.is_active == True:
+            activities = Actividad.objects.filter(evento = evento.id)
+            if not activities.exists():
+                participante_evento.is_active = False
+                participante_evento.save()
+                return Response({"error": False, "informacion": "El contacto ha sido eliminado del evento"}, status=status.HTTP_200_OK)
+            else:
+                return Response({"error": True, "informacion": "No puedes eliminar un contacto del evento cuando ya se ha creado una actividad"}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response({"error": True, "informacion": "El contacto ya ha sido eliminado del evento"}, status=status.HTTP_400_BAD_REQUEST)
+    else:
+        return Response({"error": True, "informacion": "Este usuario no tiene permiso para eliminar este participante"}, status=status.HTTP_403_FORBIDDEN)
