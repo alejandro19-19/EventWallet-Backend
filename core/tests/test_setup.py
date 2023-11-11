@@ -24,6 +24,7 @@ class TestSetUp(APITestCase):
         self.get_activities_url = reverse('get_activities', kwargs={'pk': 1})
         self.get_event_balances_url = reverse('event_balances',args=[1])
         self.delete_contact_event_url = reverse('delete_contact_event')
+        self.assign_value_activity_url = reverse('assign_value_activity')
 
         self.user1_data ={
             "nombre": "prueba1",
@@ -120,4 +121,11 @@ class TestSetUp(APITestCase):
         self.respond_invitation_data2 = {
             "invitacion_id":None,
             "respuesta": True
+        }
+
+        self.assign_value_activity_data = {
+            "actividad": None,
+            "participantes": [
+                {"id": None, "value": 90000}
+            ]
         }
