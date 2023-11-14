@@ -159,6 +159,7 @@ class TestViews(TestSetUp):
         header = {'HTTP_AUTHORIZATION': 'Token {}'.format(Token)}
         res1 = self.client.post(self.create_url, self.user2_data, format='json')
         mail = res1.data["email"]
+        id1 = res1.data["id"]
         res2 = self.client.post(self.create_event_url,self.event_data,format='json',**header)
         id = res2.data["data"]["id"]
         data = self.create_activity_data
@@ -167,9 +168,9 @@ class TestViews(TestSetUp):
         id2 = res3.data["data"]["id"]
         data2 = self.create_invitation_activity_data
         data2["actividad"] = id2
-        data2["participante"] = mail
+        data2["participantes"][0] = id1
         res4 = self.client.post(self.create_invitation_activity_url, data2, format='json',**header)
-        self.assertEqual(res4.status_code, 403)
+        self.assertEqual(res4.status_code, 200)
 
     def test_delete_activity(self):
         self.client.post(self.create_url, self.user1_data, format='json')
@@ -252,6 +253,7 @@ class TestViews(TestSetUp):
         header = {'HTTP_AUTHORIZATION': 'Token {}'.format(Token)}
         res1 = self.client.post(self.create_url, self.user2_data, format='json')
         mail = res1.data["email"]
+        id0 = res1.data["id"]
         res2 = self.client.post(self.create_event_url,self.event_data,format='json',**header)
         id = res2.data["data"]["id"]
         data = self.invitation_data
@@ -272,10 +274,26 @@ class TestViews(TestSetUp):
         id2 = res4.data["data"]["id"]
         data2 = self.create_invitation_activity_data
         data2["actividad"] = id2
-        data2["participante"] = mail
+        data2["participantes"][0] = id0
         res4 = self.client.post(self.create_invitation_activity_url, data2, format='json',**header)
         data3 = self.assign_value_activity_data
         data3["actividad"] = id2
-        data3["participantes"][0]["id"] = res4.data["data"]["participante"]["id"]
+        data3["participantes"][0]["id"] = id0
         res5 = self.client.put(self.assign_value_activity_url, data3, format='json',**header)
         self.assertEqual(res5.status_code, 200)
+    
+    def test_get_participants_event(self):
+        self.client.post(self.create_url, self.user1_data, format='json')
+        log = self.client.post(self.login_url, self.login_user1, format='json')
+        Token = log.data['token']
+        header = {'HTTP_AUTHORIZATION': 'Token {}'.format(Token)}
+        res = self.client.get(self.get_participants_event_url,{},format='json',**header)
+        self.assertEqual(res.status_code, 404)
+
+    def test_get_participants_activity(self):
+        self.client.post(self.create_url, self.user1_data, format='json')
+        log = self.client.post(self.login_url, self.login_user1, format='json')
+        Token = log.data['token']
+        header = {'HTTP_AUTHORIZATION': 'Token {}'.format(Token)}
+        res = self.client.get(self.get_participants_activity_url,{},format='json',**header)
+        self.assertEqual(res.status_code, 404)

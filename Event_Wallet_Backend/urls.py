@@ -66,5 +66,9 @@ urlpatterns = [
         views.delete_contact_event, name = 'delete_contact_event'),
     path('core/activity/assign/value',
         views.assign_value_activity, name = 'assign_value_activity'),
+    path('core/event/participants/list/<int:pk>/',
+        views.get_participants_event, name = 'get_participants_event'),
+    path('core/activity/participants/list/<int:pk>/',
+        views.get_participants_activity, name = 'get_participants_activity'),
 ]
 urlpatterns += static(settings.MEDIA_URL,document_root=settings.MEDIA_ROOT)

@@ -7,7 +7,7 @@ from rest_framework import generics, status
 from .models import Usuario, Contacto, Evento, Invitacion, UsuarioParticipaEvento, Actividad, UsuarioParticipaActividad
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.authentication import TokenAuthentication
-from core.serializers import UserSerializer, UserModifySerializer, ContactSerializer, GetContactSerializer, EventSerializer, InvitacionSerializer, InvitacionListSerializer, EventRegistrationSerializer, GetEventSerializer, ActivitySerializer, InvitacionActivitySerializer, GetActivitySerializer
+from core.serializers import UserSerializer, UserModifySerializer, ContactSerializer, GetContactSerializer, EventSerializer, InvitacionSerializer, InvitacionListSerializer, EventRegistrationSerializer, GetEventSerializer, ActivitySerializer, InvitacionActivitySerializer, GetActivitySerializer, GetEventParticipants, GetActivitiesParticipants
 from rest_framework.decorators import permission_classes, authentication_classes, api_view
 from django.views.decorators.http import require_http_methods
 
@@ -356,52 +356,6 @@ def create_activity(request):
         return Response({"error": False, "data": serializer.data}, status=status.HTTP_201_CREATED)
     return Response({"error": True, "informacion": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
-# metodo que permite invitar a un contacto a una actividades
-
-@api_view(['POST'])
-@require_http_methods(['POST'])
-@authentication_classes([TokenAuthentication])
-@permission_classes([IsAuthenticated])  
-def invitation_activity(request):
-    user = Token.objects.get(key=request.auth.key).user
-    try:
-        actividad = Actividad.objects.get(id = request.data['actividad'])
-        participante = Usuario.objects.get(email = request.data['participante'])
-        evento = Evento.objects.get(id = actividad.evento.id)
-        if user.id != evento.creador.id:
-            participante_evento = UsuarioParticipaEvento.objects.filter(evento = evento.id, participante = user.id)
-            if not participante_evento.exists():
-                return Response({"error": True, "informacion": "No tienes permisos para agregar contactos a esta actividad"}, status=status.HTTP_403_FORBIDDEN)
-        if participante.email == actividad.creador.email:
-            return Response({"error": True, "informacion": "No puedes agregar al creador de la actividad" }, status=status.HTTP_400_BAD_REQUEST)
-        if participante.id != evento.creador.id:
-            participa_evento = UsuarioParticipaEvento.objects.filter(evento = evento.id, participante = participante.id)
-            if not participa_evento.exists():
-                return Response({"error": True, "informacion": "No tienes permisos para agregar contactos a esta actividad"}, status=status.HTTP_403_FORBIDDEN)
-    except Actividad.DoesNotExist:
-        return Response({"error": True, "informacion": "La actividad ingresada no existe" }, status=status.HTTP_404_NOT_FOUND)
-    except Usuario.DoesNotExist:
-        return Response({"error": True, "informacion": "El usuario ingresado no existe" }, status=status.HTTP_404_NOT_FOUND)
-    try:
-        invitacion = UsuarioParticipaActividad.objects.get(participante=participante.id, actividad=request.data['actividad'])
-        if invitacion.is_active == False:
-            invitacion.is_active = True
-            invitacion.save()
-            return Response({"error": False, "informacion": "Se ha reactivado la invitacion del usuario en la actividad"}, status=status.HTTP_200_OK)
-        else:
-            return Response({"error": True, "informacion": "Este usuario ya pertenece a la actividad" }, status=status.HTTP_400_BAD_REQUEST)
-    except UsuarioParticipaActividad.DoesNotExist:
-        pass
-
-    invitacion = UsuarioParticipaActividad()
-    invitacion.actividad = actividad
-    invitacion.participante = participante
-    serializer = InvitacionActivitySerializer(invitacion, data=request.data, many=False, context={'request': request})
-    if serializer.is_valid():
-        invitacion.save()
-        return Response({"error": False, "data": serializer.data}, status=status.HTTP_200_OK)
-    return Response({"error": True, "informacion": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-
 # metodo que permite eliminar una actividades
 
 @api_view(['POST'])
@@ -566,4 +520,83 @@ def assign_value_activity(request):
             return Response({"error": True, "informacion": "El usuario no pertenece a la actividad ingresada"}, status=status.HTTP_400_BAD_REQUEST)
         participante_actividad.valor = participante["value"]
         participante_actividad.save()
-    return Response({"error": False, "informacion": "Se han registrado los valores"}, status=status.HTTP_200_OK)       
+    return Response({"error": False, "informacion": "Se han registrado los valores"}, status=status.HTTP_200_OK)  
+
+# metodo que permite invitar a varios contactos a una actividades
+
+@api_view(['POST'])
+@require_http_methods(['POST'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])  
+def invitation_activity(request):
+    user = Token.objects.get(key=request.auth.key).user
+    try:
+        actividad = Actividad.objects.get(id = request.data['actividad'])
+        evento = Evento.objects.get(id = actividad.evento.id)
+    except Actividad.DoesNotExist:
+        return Response({"error": True, "informacion": "La actividad ingresada no existe" }, status=status.HTTP_404_NOT_FOUND)
+    except Usuario.DoesNotExist:
+        return Response({"error": True, "informacion": "El usuario ingresado no existe" }, status=status.HTTP_404_NOT_FOUND)
+    
+    if user.id != evento.creador.id:
+            participante_evento = UsuarioParticipaEvento.objects.filter(evento = evento.id, participante = user.id)
+            if not participante_evento.exists():
+                return Response({"error": True, "informacion": "No tienes permisos para agregar contactos a esta actividad"}, status=status.HTTP_403_FORBIDDEN)
+    
+    participantes = request.data['participantes']
+    for participante in participantes:
+        try:   
+            invitacion = UsuarioParticipaActividad.objects.get(participante=participante, actividad= actividad.id)
+            if invitacion.is_active == False:
+                invitacion.is_active = True
+                invitacion.save()
+        except UsuarioParticipaActividad.DoesNotExist:
+            invitacion = UsuarioParticipaActividad()
+            usuario = Usuario.objects.get(id = participante)
+            invitacion.actividad = actividad
+            invitacion.participante = usuario
+            serializer = InvitacionActivitySerializer(invitacion, data=request.data, many=False, context={'request': request})
+            if serializer.is_valid():
+                invitacion.save()
+    return Response({"error": False, "informacion": "Se han agregado los usuarios a la actividad"}, status=status.HTTP_200_OK)   
+
+# Funcion que permite listar todos los participantes del evento ingresado
+
+@api_view(['GET'])
+@require_http_methods(['GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def get_participants_event(request, pk):
+
+    try:
+        evento = Evento.objects.get(id = pk)
+    except Evento.DoesNotExist:
+        return Response({"error": True, "informacion": "El id enviado no corresponde a ningun evento existente" }, status=status.HTTP_404_NOT_FOUND)
+        
+    participantes = UsuarioParticipaEvento.objects.filter(evento = evento.id, is_active= True)
+    creador = evento.creador.id
+    serializer = GetEventParticipants(participantes, many=True, context={'request':request})
+    return Response({"error": False, "participantes": serializer.data, "creador": creador} ,status=status.HTTP_200_OK)
+
+# Funcion que permite obtener todos los participantes de las actividades del evento
+
+@api_view(['GET'])
+@require_http_methods(['GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def get_participants_activity(request, pk):
+
+    try:
+        evento = Evento.objects.get(id = pk)
+    except Evento.DoesNotExist:
+        return Response({"error": True, "informacion": "El id enviado no corresponde a ningun evento existente" }, status=status.HTTP_404_NOT_FOUND)
+    
+    data = []
+    actividades = Actividad.objects.filter(evento = evento)
+    for actividad in actividades:
+        participantes = UsuarioParticipaActividad.objects.filter(actividad=actividad)
+        serializer = GetActivitiesParticipants(participantes, many=True, context={'request':request})
+        creador = actividad.creador.id
+        data.append({"actividad":actividad.id, "participantes":serializer.data, "creador":creador })
+
+    return Response({"error": False, "data": data} ,status=status.HTTP_200_OK)
