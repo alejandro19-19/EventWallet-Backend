@@ -449,16 +449,10 @@ def get_event_balances(request, pk):
                 nombre = participante.nombre + " " + participante.apellidos
                 valor = participacion.valor
                 if nombre in data:
-                    data[nombre] = data[nombre] + [valor]
+                    data[nombre][0] = data[nombre][0] + valor
                 else:
-                    data[nombre] = [valor]
-    
-    for i in data:
-        valorTotal = 0
-        
-        for valor in data[i]:
-            valorTotal += valor
-        data[i] = valorTotal
+                    data[nombre] = [valor, participante.id]
+                    
     dataFinal = {"evento_id":evento.id, "saldos":data}
     
     return Response({"error": False, "data": dataFinal} ,status=status.HTTP_200_OK)
