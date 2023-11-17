@@ -438,17 +438,17 @@ def get_event_balances(request, pk):
         return Response({"error": True, "informacion": "El id enviado no corresponde a ningun evento existente" }, status=status.HTTP_404_NOT_FOUND)
     data = {}
 
+    nombre = evento.creador.nombre + " " + evento.creador.apellidos
+    data[nombre] = data[nombre] = {"nombre":nombre,"usuario_id":evento.creador.id, "prestamo":0, "deuda":0, "balance":0, "participa": False}
+
     activities = Actividad.objects.filter(evento = evento.id, is_active= True)
 
     participaciones_evento = UsuarioParticipaEvento.objects.filter(evento_id = evento.id, is_active = True)
 
-    nombre = evento.creador.nombre + " " + evento.creador.apellidos
-    data[nombre] = data[nombre] = {"nombre":nombre,"usuario_id":evento.creador.id, "prestamo":0, "deuda":0, "balance":0}
-
     for participacion in participaciones_evento:
         participante = participacion.participante
         nombre = participante.nombre + " " + participante.apellidos
-        data[nombre] = data[nombre] = {"nombre":nombre,"usuario_id":participante.id, "prestamo":0, "deuda":0, "balance":0}
+        data[nombre] = data[nombre] = {"nombre":nombre,"usuario_id":participante.id, "prestamo":0, "deuda":0, "balance":0, "participa": False}
 
     for actividad in activities:
         id = actividad.id
@@ -460,8 +460,9 @@ def get_event_balances(request, pk):
                 valor = participacion.valor
                 if nombre in data:
                     data[nombre]["deuda"] = data[nombre]["deuda"] + valor
+                    data[nombre]["participa"] = True
                 else:
-                    data[nombre] = {"nombre":nombre,"usuario_id":participante.id, "prestamo":0, "deuda":valor, "balance":0}
+                    data[nombre] = {"nombre":nombre,"usuario_id":participante.id, "prestamo":0, "deuda":valor, "balance":0, "participa": True}
 
         creador = actividad.creador    
         nombre = creador.nombre + " " + creador.apellidos    
@@ -469,15 +470,14 @@ def get_event_balances(request, pk):
 
         if nombre in data:
             data[nombre]["prestamo"] = data[nombre]["prestamo"] + prestamo
+            data[nombre]["participa"] = True
         else:
-            data[nombre] = {"nombre":nombre,"usuario_id":creador.id, "prestamo":prestamo, "deuda":0, "balance":0}
+            data[nombre] = {"nombre":nombre,"usuario_id":creador.id, "prestamo":prestamo, "deuda":0, "balance":0, "participa": True}
     datos = []         
 
     for i in data:
         data[i]["balance"] = data[i]["prestamo"] - data[i]["deuda"]
         datos.append(data[i])
-
-    print(datos)
 
     dataFinal = {"evento_id":evento.id, "saldos":datos}
     
