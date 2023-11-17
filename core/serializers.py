@@ -95,11 +95,13 @@ class GetActivitySerializer(serializers.ModelSerializer):
         fields = ("id", "evento", "nombre", "descripcion", "valor")
 
 class GetEventParticipants(serializers.ModelSerializer):
+    participante = UserInvitationSerializer(many=False, read_only = True)
     class Meta:
         model= UsuarioParticipaEvento
         fields = ("participante",)
 
 class GetActivitiesParticipants(serializers.ModelSerializer):
+    participante = UserInvitationSerializer(many=False, read_only = True)
     class Meta:
         model= UsuarioParticipaActividad
         fields = ("participante",)
