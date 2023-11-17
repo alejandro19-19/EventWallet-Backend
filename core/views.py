@@ -7,7 +7,7 @@ from rest_framework import generics, status
 from .models import Usuario, Contacto, Evento, Invitacion, UsuarioParticipaEvento, Actividad, UsuarioParticipaActividad
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.authentication import TokenAuthentication
-from core.serializers import UserSerializer, UserModifySerializer, ContactSerializer, GetContactSerializer, EventSerializer, InvitacionSerializer, InvitacionListSerializer, EventRegistrationSerializer, GetEventSerializer, ActivitySerializer, InvitacionActivitySerializer, GetActivitySerializer, GetEventParticipants, GetActivitiesParticipants
+from core.serializers import UserSerializer, UserModifySerializer, ContactSerializer, GetContactSerializer, EventSerializer, InvitacionSerializer, InvitacionListSerializer, EventRegistrationSerializer, GetEventSerializer, ActivitySerializer, InvitacionActivitySerializer, GetActivitySerializer, GetEventParticipants, GetActivitiesParticipants, UserInvitationSerializer
 from rest_framework.decorators import permission_classes, authentication_classes, api_view
 from django.views.decorators.http import require_http_methods
 
@@ -568,9 +568,10 @@ def get_participants_event(request, pk):
         return Response({"error": True, "informacion": "El id enviado no corresponde a ningun evento existente" }, status=status.HTTP_404_NOT_FOUND)
         
     participantes = UsuarioParticipaEvento.objects.filter(evento = evento.id, is_active= True)
-    creador = evento.creador.id
-    serializer = GetEventParticipants(participantes, many=True, context={'request':request})
-    return Response({"error": False, "participantes": serializer.data, "creador": creador} ,status=status.HTTP_200_OK)
+    creador = evento.creador
+    serializer1 = UserInvitationSerializer(creador, many=False, context={'request':request})
+    serializer2 = GetEventParticipants(participantes, many=True, context={'request':request})
+    return Response({"error": False, "participantes": serializer2.data, "creador": serializer1.data} ,status=status.HTTP_200_OK)
 
 # Funcion que permite obtener todos los participantes de las actividades del evento
 
@@ -588,9 +589,10 @@ def get_participants_activity(request, pk):
     data = []
     actividades = Actividad.objects.filter(evento = evento)
     for actividad in actividades:
+        creador = actividad.creador
         participantes = UsuarioParticipaActividad.objects.filter(actividad=actividad)
-        serializer = GetActivitiesParticipants(participantes, many=True, context={'request':request})
-        creador = actividad.creador.id
-        data.append({"actividad":actividad.id, "participantes":serializer.data, "creador":creador })
+        serializer1 = GetActivitiesParticipants(participantes, many=True, context={'request':request})
+        serializer2 = UserInvitationSerializer(creador, many=False, context={'request':request})
+        data.append({"actividad":actividad.id, "participantes":serializer1.data, "creador":serializer2.data })
 
     return Response({"error": False, "data": data} ,status=status.HTTP_200_OK)
