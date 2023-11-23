@@ -439,7 +439,7 @@ def get_event_balances(request, pk):
     data = {}
 
     nombre = evento.creador.nombre + " " + evento.creador.apellidos
-    data[nombre] = data[nombre] = {"nombre":nombre,"usuario_id":evento.creador.id, "prestamo":0, "deuda":0, "balance":0, "participa": False}
+    data[nombre] = {"nombre":nombre,"usuario_id":evento.creador.id, "prestamo":0, "deuda":0, "balance":0, "participa": False}
 
     activities = Actividad.objects.filter(evento = evento.id, is_active= True)
 
@@ -448,11 +448,11 @@ def get_event_balances(request, pk):
     for participacion in participaciones_evento:
         participante = participacion.participante
         nombre = participante.nombre + " " + participante.apellidos
-        data[nombre] = data[nombre] = {"nombre":nombre,"usuario_id":participante.id, "prestamo":0, "deuda":0, "balance":0, "participa": False}
+        data[nombre] = {"nombre":nombre,"usuario_id":participante.id, "prestamo":0, "deuda":0, "balance":0, "participa": False}
 
     for actividad in activities:
         id = actividad.id
-        participaciones = UsuarioParticipaActividad.objects.filter(actividad_id = id)
+        participaciones = UsuarioParticipaActividad.objects.filter(actividad_id = id, is_active = True)
         for participacion in participaciones:
             if participacion.is_active:
                 participante = Usuario.objects.get(id = participacion.participante_id)
@@ -622,3 +622,68 @@ def get_participants_activity(request, pk):
         data.append({"actividad":actividad.id, "participantes":serializer1.data, "creador":serializer2.data })
 
     return Response({"error": False, "data": data} ,status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+@require_http_methods(['GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])  
+def get_event_user_balances(request, event_id, user_id):
+
+    try:
+        usuario = Usuario.objects.get(id = user_id)
+    except Usuario.DoesNotExist:
+        return Response({"error": True, "informacion": "El id enviado no corresponde a ningun usuario registrado" }, status=status.HTTP_404_NOT_FOUND)
+    try:
+        evento = Evento.objects.get(id = event_id)
+    except Evento.DoesNotExist:
+        return Response({"error": True, "informacion": "El id enviado no corresponde a ningun evento existente" }, status=status.HTTP_404_NOT_FOUND)
+    data = {}
+
+    participaciones_evento = UsuarioParticipaEvento.objects.filter(evento_id = evento.id, is_active = True)
+
+    for participacion in participaciones_evento:
+        participante = participacion.participante
+        if participante != usuario:
+            print("hola")
+            nombre = participante.nombre + " " + participante.apellidos
+            data[nombre] = data[nombre] = {"nombre":nombre,"usuario_id":participante.id, "prestamo":0, "deuda":0, "saldo":0, "debe": False, "le deben": False}
+
+    activitiesUser = Actividad.objects.filter(evento = evento.id, creador = usuario.id, is_active= True)
+
+    for actividad in activitiesUser:
+        id = actividad.id
+        participaciones = UsuarioParticipaActividad.objects.filter(actividad_id = id, is_active=True)
+
+        for participacion in participaciones:
+                participante = Usuario.objects.get(id = participacion.participante_id)
+                nombre = participante.nombre + " " + participante.apellidos
+                valor = participacion.valor
+                if nombre in data:
+                    data[nombre]["deuda"] = data[nombre]["deuda"] + valor
+    
+    activitiesUserParticipates = UsuarioParticipaActividad.objects.filter(actividad__evento = evento.id, participante = usuario.id,is_active=True)
+
+    for actividad in activitiesUserParticipates:
+        creador = actividad.actividad.creador
+        nombre = creador.nombre + " " + creador.apellidos   
+        valor = actividad.valor
+        if nombre in data:
+            data[nombre]["prestamo"] = data[nombre]["prestamo"] + valor
+        else:
+            data[nombre]={"nombre":nombre,"usuario_id":participante.id, "prestamo":valor, "deuda":0, "saldo":0, "debe": False, "le deben": False}
+
+    datos = []  
+    for i in data:
+        data[i]["saldo"] = data[i]["prestamo"] - data[i]["deuda"]
+
+        if data[i]["saldo"] > 0:
+            data[i]["le deben"] = True
+        elif data[i]["saldo"] < 0:
+            data[i]["debe"] = True
+
+        datos.append(data[i])
+    nombre = usuario.nombre+" "+usuario.apellidos
+    dataFinal = {"usuario_id": usuario.id, "nombre":nombre, "evento_id":evento.id, "saldos":datos}
+
+    return Response({"error": False, "data": dataFinal} ,status=status.HTTP_200_OK)

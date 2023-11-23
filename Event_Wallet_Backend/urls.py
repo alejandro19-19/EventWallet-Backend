@@ -70,5 +70,7 @@ urlpatterns = [
         views.get_participants_event, name = 'get_participants_event'),
     path('core/activity/participants/list/<int:pk>/',
         views.get_participants_activity, name = 'get_participants_activity'),
+    path('core/event/user/balance/<int:event_id>/<int:user_id>/',
+        views.get_event_user_balances, name = 'event_user_balances'),   
 ]
 urlpatterns += static(settings.MEDIA_URL,document_root=settings.MEDIA_ROOT)
