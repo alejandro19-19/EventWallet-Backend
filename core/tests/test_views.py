@@ -212,7 +212,7 @@ class TestViews(TestSetUp):
         res = self.client.get(self.get_activities_url,{},format='json',**header)
         self.assertEqual(res.status_code, 404)
 
-    def test_get_activities(self):
+    def test_get_event_balances(self):
         self.client.post(self.create_url, self.user1_data, format='json')
         log = self.client.post(self.login_url, self.login_user1, format='json')
         Token = log.data['token']
@@ -296,4 +296,12 @@ class TestViews(TestSetUp):
         Token = log.data['token']
         header = {'HTTP_AUTHORIZATION': 'Token {}'.format(Token)}
         res = self.client.get(self.get_participants_activity_url,{},format='json',**header)
+        self.assertEqual(res.status_code, 404)
+
+    def test_get_event_user_balances(self):
+        self.client.post(self.create_url, self.user1_data, format='json')
+        log = self.client.post(self.login_url, self.login_user1, format='json')
+        Token = log.data['token']
+        header = {'HTTP_AUTHORIZATION': 'Token {}'.format(Token)}   
+        res = self.client.get(self.get_event_user_balances_url,{},format='json',**header)
         self.assertEqual(res.status_code, 404)
