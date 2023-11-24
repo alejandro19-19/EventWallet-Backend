@@ -183,5 +183,4 @@ AWS_S3_CUSTOM_DOMAIN = '%s.s3.amazonaws.com' % S3_BUCKET_NAME
 STATIC_URL = "https://%s/" % AWS_S3_CUSTOM_DOMAIN
 # if you have configured a custom domain for your static files use:
 #AWS_S3_PUBLIC_URL_STATIC = "<https://static.yourdomain.com/>"
-
 """
