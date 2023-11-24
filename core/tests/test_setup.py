@@ -28,6 +28,7 @@ class TestSetUp(APITestCase):
         self.get_participants_event_url = reverse('get_participants_event',args=[1])
         self.get_participants_activity_url = reverse('get_participants_activity',args=[1])
         self.get_event_user_balances_url = reverse('event_user_balances',args=[1,1])
+        self.pay_balance_event_irl = reverse('pay_balance_event')
 
         self.user1_data ={
             "nombre": "prueba1",
@@ -131,4 +132,10 @@ class TestSetUp(APITestCase):
             "participantes": [
                 {"id": None, "value": 90000}
             ]
+        }
+
+        self.pay_balance_event_data = {
+            "evento":None,
+            "prestador": None,
+            "valor": 10000
         }
