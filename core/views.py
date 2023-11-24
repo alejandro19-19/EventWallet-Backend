@@ -4,7 +4,7 @@ from rest_framework.settings import api_settings
 from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
 from rest_framework import generics, status
-from .models import Usuario, Contacto, Evento, Invitacion, UsuarioParticipaEvento, Actividad, UsuarioParticipaActividad
+from .models import Usuario, Contacto, Evento, Invitacion, UsuarioParticipaEvento, Actividad, UsuarioParticipaActividad, Pago
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.authentication import TokenAuthentication
 from core.serializers import UserSerializer, UserModifySerializer, ContactSerializer, GetContactSerializer, EventSerializer, InvitacionSerializer, InvitacionListSerializer, EventRegistrationSerializer, GetEventSerializer, ActivitySerializer, InvitacionActivitySerializer, GetActivitySerializer, GetEventParticipants, GetActivitiesParticipants, UserInvitationSerializer
@@ -37,6 +37,8 @@ class CreateTokenView(ObtainAuthToken):
                 'email': user.email,
                 'name': user.nombre,
                 'apellidos': user.apellidos,
+                'apodo': user.apodo,
+                'foto': user.foto,
                 'created': created,
             },status=status.HTTP_302_FOUND)
         else:
@@ -631,6 +633,7 @@ def get_participants_activity(request, pk):
 
     return Response({"error": False, "data": data} ,status=status.HTTP_200_OK)
 
+# Funcion que permite obtener los balances de un usuario en un evento
 
 @api_view(['GET'])
 @require_http_methods(['GET'])
@@ -695,3 +698,34 @@ def get_event_user_balances(request, event_id, user_id):
     dataFinal = {"usuario_id": usuario.id, "nombre":nombre, "evento_id":evento.id, "saldos":datos}
 
     return Response({"error": False, "data": dataFinal} ,status=status.HTTP_200_OK)
+
+# metodo que permite realizar un pago
+
+@api_view(['POST'])
+@require_http_methods(['POST'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])  
+def pay_balance_event(request):
+    user = Token.objects.get(key=request.auth.key).user
+    try:
+        evento = Evento.objects.get(id = request.data['evento'])
+        prestador = Usuario.objects.get(id = request.data['prestador'])
+    except Evento.DoesNotExist:
+        return Response({"error": True, "informacion": "El id enviado no corresponde a ningun evento existente" }, status=status.HTTP_404_NOT_FOUND)
+    except Usuario.DoesNotExist:
+        return Response({"error": True, "informacion": "El id enviado no corresponde a un usuario" }, status=status.HTTP_404_NOT_FOUND)
+    if request.data['prestador'] == user.id:
+        return Response({"error": True, "informacion": "No puedes pagarte a ti mismo" }, status=status.HTTP_400_BAD_REQUEST)
+
+
+    try:
+        pago = Pago()
+        pago.evento = evento
+        pago.deudor = user
+        pago.prestador = prestador
+        pago.valor = request.data['valor']
+        pago.save()
+    except:
+        return Response({"error": True, "informacion": "Ingrese todos los valores" }, status=status.HTTP_400_BAD_REQUEST)
+
+    return Response({"error": False, "informacion": "Se ha realizado el pago"} ,status=status.HTTP_200_OK)

@@ -305,3 +305,18 @@ class TestViews(TestSetUp):
         header = {'HTTP_AUTHORIZATION': 'Token {}'.format(Token)}   
         res = self.client.get(self.get_event_user_balances_url,{},format='json',**header)
         self.assertEqual(res.status_code, 404)
+    
+    def test_pay_balance_event(self):
+        self.client.post(self.create_url, self.user1_data, format='json') 
+        log = self.client.post(self.login_url, self.login_user1, format='json')
+        Token = log.data['token']
+        header = {'HTTP_AUTHORIZATION': 'Token {}'.format(Token)}
+        res1 = self.client.post(self.create_url, self.user2_data, format='json')
+        res2 = self.client.post(self.create_event_url,self.event_data,format='json',**header)
+        id0 = res1.data["id"]
+        id1 = res2.data["data"]["id"]
+        data = self.pay_balance_event_data
+        data["evento"] = id1
+        data["prestador"] = id0
+        res = self.client.post(self.pay_balance_event_irl,data,format='json',**header)
+        self.assertEqual(res.status_code, 200)

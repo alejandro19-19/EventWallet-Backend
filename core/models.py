@@ -60,7 +60,7 @@ class Contacto(models.Model):
         unique_together = ('usuario1', 'usuario2')
 
 class Pago (models.Model):
-
+    evento = models.ForeignKey(Evento, on_delete=models.CASCADE, related_name='pago_evento')
     deudor = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name='deudor_pago')
     prestador = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name='prestador_pago')
     valor = models.FloatField()
