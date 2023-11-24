@@ -533,13 +533,21 @@ def assign_value_activity(request):
     if user.id != actividad.creador_id:
         return Response({"error": True, "informacion": "Los valores de participacion solo pueden ser asignados por el creador de la actividad"}, status=status.HTTP_400_BAD_REQUEST)
     participantes = request.data['participantes']
+    cambios_participantes = []
     for participante in participantes:
         try:   
             participante_actividad = UsuarioParticipaActividad.objects.get(participante_id = participante["id"], actividad_id = actividad.id)
+            participante_actividad.valor = participante["value"]
+            cambios_participantes.append(participante_actividad)
         except UsuarioParticipaActividad.DoesNotExist:
-            return Response({"error": True, "informacion": "El usuario no pertenece a la actividad ingresada"}, status=status.HTTP_400_BAD_REQUEST)
-        participante_actividad.valor = participante["value"]
+            if participante["id"] != actividad.creador.id:
+                return Response({"error": True, "informacion": "Algun usuario no pertenece a la actividad, por lo tanto no se realizo la operacion."}, status=status.HTTP_400_BAD_REQUEST)
+            actividad.valor_creador = participante["value"]
+    for participante_actividad in cambios_participantes:
         participante_actividad.save()
+    
+    actividad.save()
+    
     return Response({"error": False, "informacion": "Se han registrado los valores"}, status=status.HTTP_200_OK)  
 
 # metodo que permite invitar a varios contactos a una actividades

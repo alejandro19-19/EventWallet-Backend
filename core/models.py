@@ -43,6 +43,7 @@ class Evento(models.Model):
 class Actividad(models.Model):
     evento = models.ForeignKey(Evento, on_delete=models.CASCADE, related_name='evento_actividad')
     creador = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name='creador_actividad')
+    valor_creador = models.FloatField(default=0)
     nombre = models.CharField(max_length=50)
     descripcion = models.CharField(max_length=250)
     valor = models.FloatField()
