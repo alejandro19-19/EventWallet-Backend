@@ -29,6 +29,7 @@ class TestSetUp(APITestCase):
         self.get_participants_activity_url = reverse('get_participants_activity',args=[1])
         self.get_event_user_balances_url = reverse('event_user_balances',args=[1,1])
         self.pay_balance_event_irl = reverse('pay_balance_event')
+        self.get_user_balance_url = reverse('user_balance',args=[1])
 
         self.user1_data ={
             "nombre": "prueba1",
