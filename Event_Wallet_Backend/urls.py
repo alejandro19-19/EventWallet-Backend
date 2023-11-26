@@ -73,6 +73,8 @@ urlpatterns = [
     path('core/event/user/balance/<int:event_id>/<int:user_id>/',
         views.get_event_user_balances, name = 'event_user_balances'),
     path('core/event/user/balance/pay/',
-        views.pay_balance_event, name = 'pay_balance_event'),     
+        views.pay_balance_event, name = 'pay_balance_event'),
+    path('core/user/balance/<int:user_id>/',
+        views.get_user_balance, name = 'user_balance'),  
 ]
 urlpatterns += static(settings.MEDIA_URL,document_root=settings.MEDIA_ROOT)

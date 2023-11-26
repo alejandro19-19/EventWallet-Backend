@@ -320,3 +320,11 @@ class TestViews(TestSetUp):
         data["prestador"] = id0
         res = self.client.post(self.pay_balance_event_irl,data,format='json',**header)
         self.assertEqual(res.status_code, 200)
+    
+    def test_get_user_balance(self):
+        self.client.post(self.create_url, self.user1_data, format='json')
+        log = self.client.post(self.login_url, self.login_user1, format='json')
+        Token = log.data['token']
+        header = {'HTTP_AUTHORIZATION': 'Token {}'.format(Token)}   
+        res = self.client.get(self.get_user_balance_url,{},format='json',**header)
+        self.assertEqual(res.status_code, 404)
