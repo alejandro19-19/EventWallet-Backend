@@ -855,7 +855,7 @@ def get_user_balance(request, user_id):
 
             datos.append(data[i])
 
-        data_eventos.append({"evento_id":evento.id,"saldos":datos})
+        data_eventos.append({"evento_id":evento.id,"nombre_evento":evento.nombre,"saldos":datos})
     
     nombre = usuario.nombre+" "+usuario.apellidos
     dataFinal = {"usuario_id": usuario.id, "nombre":nombre, "saldo_eventos":data_eventos}
