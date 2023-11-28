@@ -34,6 +34,7 @@ class CreateTokenView(ObtainAuthToken):
             return Response({
                 'error': False,
                 'token': token.key,
+                'id_user': user.id,
                 'email': user.email,
                 'name': user.nombre,
                 'apellidos': user.apellidos,
