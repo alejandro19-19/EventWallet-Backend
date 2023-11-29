@@ -327,4 +327,4 @@ class TestViews(TestSetUp):
         Token = log.data['token']
         header = {'HTTP_AUTHORIZATION': 'Token {}'.format(Token)}   
         res = self.client.get(self.get_user_balance_url,{},format='json',**header)
-        self.assertEqual(res.status_code, 404)
+        self.assertEqual(res.status_code, 200)
