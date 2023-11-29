@@ -417,7 +417,7 @@ def modify_activity(request):
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def get_activities(request, pk):
-
+    user = Token.objects.get(key=request.auth.key).user
     try:
         evento = Evento.objects.get(id = pk)
     except Evento.DoesNotExist:
@@ -425,7 +425,7 @@ def get_activities(request, pk):
         
     activities = Actividad.objects.filter(evento = evento.id, is_active= True)
     serializer = GetActivitySerializer(activities, many=True, context={'request':request})
-    return Response({"error": False, "data": serializer.data} ,status=status.HTTP_200_OK)
+    return Response({"error": False, "data": serializer.data, "user": user.id} ,status=status.HTTP_200_OK)
 
 # Funcion que permite obtener los balances de cada usuario
 
@@ -769,16 +769,16 @@ def pay_balance_event(request):
 
     return Response({"error": False, "informacion": "Se ha realizado el pago"} ,status=status.HTTP_200_OK)
 
+# metodo que retorna el balance del usuario logueado
+
 @api_view(['GET'])
 @require_http_methods(['GET'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])  
-def get_user_balance(request, user_id):
+def get_user_balance(request):
 
-    try:
-        usuario = Usuario.objects.get(id = user_id)
-    except Usuario.DoesNotExist:
-        return Response({"error": True, "informacion": "El id enviado no corresponde a ningun usuario registrado" }, status=status.HTTP_404_NOT_FOUND)
+    usuario = Token.objects.get(key=request.auth.key).user
+
     eventos = []
     events = Evento.objects.filter(creador = usuario.id)
     for e in events:
