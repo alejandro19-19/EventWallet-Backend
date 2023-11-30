@@ -49,6 +49,11 @@ class EventSerializer(serializers.ModelSerializer):
         model = Evento
         fields = ("id","nombre", "descripcion", "tipo", "foto")
 
+class EventCreatorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Evento
+        fields = ("id","nombre", "descripcion", "tipo", "foto", "creador")
+
 class InvitacionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Invitacion
@@ -67,7 +72,7 @@ class EventRegistrationSerializer(serializers.ModelSerializer):
         fields = ("evento","participante")
 
 class GetEventSerializer(serializers.ModelSerializer):
-    evento = EventSerializer(many=False, read_only = True)
+    evento = EventCreatorSerializer(many=False, read_only = True)
     class Meta:
         model = UsuarioParticipaEvento
         fields = ("evento",)
