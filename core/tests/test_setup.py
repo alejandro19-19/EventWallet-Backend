@@ -138,5 +138,6 @@ class TestSetUp(APITestCase):
         self.pay_balance_event_data = {
             "evento":None,
             "prestador": None,
+            "deudor": None,
             "valor": 10000
         }

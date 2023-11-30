@@ -315,7 +315,9 @@ class TestViews(TestSetUp):
         res2 = self.client.post(self.create_event_url,self.event_data,format='json',**header)
         id0 = res1.data["id"]
         id1 = res2.data["data"]["id"]
+        id2 = log.data["id_user"]
         data = self.pay_balance_event_data
+        data["deudor"] = id2
         data["evento"] = id1
         data["prestador"] = id0
         res = self.client.post(self.pay_balance_event_irl,data,format='json',**header)

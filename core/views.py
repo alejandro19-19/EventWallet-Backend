@@ -326,7 +326,7 @@ def respond_to_invitation(request):
 @permission_classes([IsAuthenticated])
 def get_events(request):
     user = Token.objects.get(key=request.auth.key).user
-    usuario_participa_evento = UsuarioParticipaEvento.objects.filter(participante= user.id)
+    usuario_participa_evento = UsuarioParticipaEvento.objects.filter(participante= user.id, is_active = True)
     serializer1 = GetEventSerializer(
         usuario_participa_evento, many=True, context={'request': request})
     eventos_creador = Evento.objects.filter(creador = user.id)
@@ -515,6 +515,7 @@ def delete_contact_event(request):
     try:
         evento = Evento.objects.get(id = request.data['evento'])
         contacto = Usuario.objects.get(id = request.data['contacto'])
+        invitacion = Invitacion.objects.get(usuario= request.data['contacto'], evento=request.data['evento'])
     except Evento.DoesNotExist:
         return Response({"error": True, "informacion": "El id enviado no corresponde a ningun evento existente" }, status=status.HTTP_404_NOT_FOUND)
     except Usuario.DoesNotExist:
@@ -530,6 +531,9 @@ def delete_contact_event(request):
             if not activities.exists():
                 participante_evento.is_active = False
                 participante_evento.save()
+                invitacion.aceptado = False
+                invitacion.is_active = False
+                invitacion.save()
                 return Response({"error": False, "informacion": "El contacto ha sido eliminado del evento"}, status=status.HTTP_200_OK)
             else:
                 return Response({"error": True, "informacion": "No puedes eliminar un contacto del evento cuando ya se ha creado una actividad"}, status=status.HTTP_400_BAD_REQUEST)
@@ -749,18 +753,17 @@ def pay_balance_event(request):
     user = Token.objects.get(key=request.auth.key).user
     try:
         evento = Evento.objects.get(id = request.data['evento'])
+        deudor = Usuario.objects.get(id = request.data['deudor'])
         prestador = Usuario.objects.get(id = request.data['prestador'])
     except Evento.DoesNotExist:
         return Response({"error": True, "informacion": "El id enviado no corresponde a ningun evento existente" }, status=status.HTTP_404_NOT_FOUND)
     except Usuario.DoesNotExist:
         return Response({"error": True, "informacion": "El id enviado no corresponde a un usuario" }, status=status.HTTP_404_NOT_FOUND)
-    if request.data['prestador'] == user.id:
-        return Response({"error": True, "informacion": "No puedes pagarte a ti mismo" }, status=status.HTTP_400_BAD_REQUEST)
 
     try:
         pago = Pago()
         pago.evento = evento
-        pago.deudor = user
+        pago.deudor = deudor
         pago.prestador = prestador
         pago.valor = request.data['valor']
         pago.save()
