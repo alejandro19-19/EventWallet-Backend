@@ -237,13 +237,13 @@ def create_invitation(request):
     try:
         user2 = Usuario.objects.get(email = request.data['email'])
         if user.id == user2.id:
-            return Response({"error": True, "información":"No puede invitarse asi mismo al evento"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": True, "informacion":"No puede invitarse asi mismo al evento"}, status=status.HTTP_400_BAD_REQUEST)
     except Usuario.DoesNotExist:
       return Response({"error": True, "informacion": "El correo ingresado no corresponde a ningun usuario" }, status=status.HTTP_404_NOT_FOUND)
     try:
         registro = UsuarioParticipaEvento.objects.get(evento_id = event.id, participante_id = user2.id)
         if registro.is_active == True:
-            return Response({"error": True, "información":"El usuario ingresado ya es parte del evento"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": True, "informacion":"El usuario ingresado ya es parte del evento"}, status=status.HTTP_400_BAD_REQUEST)
     except UsuarioParticipaEvento.DoesNotExist:
         pass
     try:
@@ -251,9 +251,9 @@ def create_invitation(request):
         if inv.is_active == False:
             inv.is_active = True
             inv.save()
-            return Response({"error": False, "información":"Se ha reactivado la invitación"}, status=status.HTTP_200_OK)
+            return Response({"error": False, "informacion":"Se ha reactivado la invitación"}, status=status.HTTP_200_OK)
         else:
-            return Response({"error": True, "información":"Este usuario ya ha sido invitado a este evento"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": True, "informacion":"Este usuario ya ha sido invitado a este evento"}, status=status.HTTP_400_BAD_REQUEST)
     except Invitacion.DoesNotExist:
         pass
 
